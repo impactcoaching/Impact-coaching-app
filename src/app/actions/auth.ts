@@ -19,7 +19,11 @@ export async function signIn(_: FormState, form: FormData): Promise<FormState> {
   const { data, error } = await supabase.auth.signInWithPassword(parsed.data);
   if (error || !data.user) return { error: "That email and password don't match. Try again, or reset your password." };
   const { data: profile } = await supabase.from("profiles").select("*").eq("id", data.user.id).single<Profile>();
-  redirect(profile ? homeFor(profile) : "/app");
+  if (!profile) {
+    await supabase.auth.signOut();
+    return { error: "You're signed in, but your account isn't fully set up yet. Please message Adam so he can sort it out." };
+  }
+  redirect(homeFor(profile));
 }
 
 const joinSchema = z.object({

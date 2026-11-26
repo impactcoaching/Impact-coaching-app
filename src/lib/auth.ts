@@ -18,7 +18,9 @@ export async function requireProfile() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
   const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single<Profile>();
-  if (!profile) redirect("/login");
+  // Signed in but no profile row (e.g. the account was made before the database was set up).
+  // Send them to a page that explains, rather than looping back to sign-in.
+  if (!profile) redirect("/login?error=profile");
   return { supabase, user, profile };
 }
 

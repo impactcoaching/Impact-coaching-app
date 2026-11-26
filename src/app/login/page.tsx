@@ -13,6 +13,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         {reset ? "Reset" : "Welcome"}
         <span>{reset ? "password" : "back"}</span>
       </h1>
+      {sp.error === "profile" ? <p className="alert">Your account isn&apos;t fully set up yet. Please message Adam so he can sort it out.</p> : null}
       {sp.error === "link" ? <p className="alert">That link has expired or was already used. Sign in, or ask for a new one.</p> : null}
       <div className="card">
         {reset ? (
