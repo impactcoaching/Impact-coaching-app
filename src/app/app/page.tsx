@@ -1,9 +1,15 @@
 import Link from "next/link";
 import { requireProfile } from "@/lib/auth";
+import { todayIn } from "@/lib/nutrition";
+import { daysUntil, shortDate } from "@/lib/peak";
+import { currentPeakWeek } from "@/lib/peak-server";
 
 export default async function ClientHome({ searchParams }: { searchParams: Promise<{ welcome?: string }> }) {
-  const { profile } = await requireProfile();
+  const { supabase, user, profile } = await requireProfile();
   const sp = await searchParams;
+  const today = todayIn(profile.time_zone);
+  const peak = profile.status === "active" ? await currentPeakWeek(supabase, user.id, today) : null;
+  const until = peak ? daysUntil(peak.week.show_date, today) : null;
   const first = (profile.full_name ?? "").split(" ")[0] || "there";
   return (
     <>
@@ -13,6 +19,13 @@ export default async function ClientHome({ searchParams }: { searchParams: Promi
         <span>{profile.status === "active" ? "let's go" : "nearly there"}</span>
       </h1>
       {sp.welcome ? <p className="alert ok">Thanks! Your answers are with Adam.</p> : null}
+      {peak && until != null ? (
+        <Link href="/app/peak" className="card peakcard">
+          <span className="eyebrow">Peak week · show {shortDate(peak.week.show_date)}</span>
+          <h2>{until > 0 ? `${until} day${until === 1 ? "" : "s"} to go` : until === 0 ? "It's show day" : "Show done. Well done!"}</h2>
+          <span className="small">See today&apos;s plan from Adam →</span>
+        </Link>
+      ) : null}
       {profile.status === "pending" ? (
         <div className="card">
           <h2>What happens next</h2>

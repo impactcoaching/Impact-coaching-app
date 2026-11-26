@@ -287,3 +287,24 @@ input[type="range"] { width: 100%; accent-color: var(--pink); }
 .flags { display: flex; flex-direction: column; gap: 6px; }
 .flag { display: flex; gap: 10px; align-items: flex-start; background: rgba(255,190,60,.08); border: 1px solid rgba(255,190,60,.35); border-radius: 12px; padding: 9px 12px; font-size: 13px; }
 .flag b { color: #ffc861; }
+/* ---------- peak week ---------- */
+.peakdays { display: flex; flex-direction: column; gap: 12px; }
+.peakday { border: 1px solid var(--line); border-radius: 14px; padding: 12px; margin: 0; display: flex; flex-direction: column; gap: 10px; min-width: 0; background: rgba(0,0,0,.2); }
+.peakday.show { border-color: rgba(255, 46, 136, 0.55); background: var(--pink-soft); }
+.peakday legend { padding: 0 6px; }
+.peakday legend b { font-family: var(--display); font-style: italic; font-size: 18px; text-transform: uppercase; }
+.peakgrid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+.peakgrid label { display: flex; flex-direction: column; gap: 4px; font-size: 11.5px; color: var(--muted); font-weight: 600; min-width: 0; }
+@media (max-width: 640px) { .peakgrid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.ptable { display: flex; flex-direction: column; gap: 8px; }
+.pday { border: 1px solid var(--line); border-radius: 14px; padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; background: rgba(0,0,0,.2); }
+.pday.today { border-color: var(--pink); box-shadow: 0 0 0 3px rgba(255, 46, 136, 0.18); }
+.pday.past { opacity: .55; }
+.pday .top { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.pday .top b { font-family: var(--display); font-style: italic; font-size: 18px; text-transform: uppercase; }
+.pnums { display: grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 6px; }
+.pnums div { background: rgba(0,0,0,.3); border: 1px solid var(--line); border-radius: 10px; padding: 6px 8px; }
+.pnums span { display: block; font-size: 10.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
+.pnums b { font-family: var(--display); font-style: italic; font-size: 20px; font-variant-numeric: tabular-nums; }
+.peakcard { text-decoration: none; color: var(--fg); border-color: rgba(255, 46, 136, 0.45); background: linear-gradient(150deg, rgba(255,46,136,.28), rgba(255,46,136,.06) 50%, rgba(255,255,255,.03)); }
+.peakcard h2 { font-style: italic; }
