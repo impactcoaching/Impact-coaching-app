@@ -2,8 +2,12 @@ import Link from "next/link";
 import { requireCoach } from "@/lib/auth";
 
 export default async function CoachDashboard() {
-  const { supabase, profile } = await requireCoach();
-  const { data: clients } = await supabase.from("profiles").select("id, full_name, status, created_at").eq("role", "client").order("created_at", { ascending: false });
+  const { supabase, profile, user } = await requireCoach();
+  const [{ data: clients }, { count: toReply }, { count: unread }] = await Promise.all([
+    supabase.from("profiles").select("id, full_name, status, created_at").eq("role", "client").order("created_at", { ascending: false }),
+    supabase.from("checkins").select("id", { count: "exact", head: true }).is("replied_at", null),
+    supabase.from("messages").select("id", { count: "exact", head: true }).is("read_at", null).neq("sender_id", user.id),
+  ]);
   const list = clients ?? [];
   const pending = list.filter((c) => c.status === "pending");
   const active = list.filter((c) => c.status === "active");
@@ -29,6 +33,14 @@ export default async function CoachDashboard() {
           <span className="eyebrow">New sign-ups to review</span>
           <h2 className="num" style={{ fontSize: 44 }}>{pending.length}</h2>
         </div>
+        <Link href="/coach/checkins" className="card" style={{ textDecoration: "none", color: "var(--fg)" }}>
+          <span className="eyebrow">Check-ins to reply to</span>
+          <h2 className="num" style={{ fontSize: 44 }}>{toReply ?? 0}</h2>
+        </Link>
+        <Link href="/coach/messages" className="card" style={{ textDecoration: "none", color: "var(--fg)" }}>
+          <span className="eyebrow">Unread messages</span>
+          <h2 className="num" style={{ fontSize: 44 }}>{unread ?? 0}</h2>
+        </Link>
       </div>
       {pending.length ? (
         <div className="card">
