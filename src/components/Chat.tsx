@@ -98,9 +98,9 @@ export function Chat({ clientId, meId, otherName, messages, timeZone }: { client
           {error}
         </p>
       ) : null}
-      <div className="chat-input">
+      <div className="chat-input" data-tour="chat-input">
         <input ref={fileRef} type="file" accept="image/*,video/*" hidden onChange={(e) => (onFile(e.target.files?.[0]), (e.target.value = ""))} />
-        <button className="iconbtn" type="button" onClick={() => fileRef.current?.click()} aria-label="Add a photo or video" disabled={busy}>
+        <button className="iconbtn" type="button" data-tour="chat-attach" onClick={() => fileRef.current?.click()} aria-label="Add a photo or video" disabled={busy}>
           📎
         </button>
         <textarea

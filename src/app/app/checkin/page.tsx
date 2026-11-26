@@ -57,7 +57,7 @@ export default async function CheckinPage() {
       />
 
       {past?.length ? (
-        <div className="card">
+        <div className="card" data-tour="ci-history">
           <h2>Your check-ins</h2>
           {past.map((c) => (
             <details key={c.id} className="ci">

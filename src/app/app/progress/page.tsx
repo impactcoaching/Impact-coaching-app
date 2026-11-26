@@ -43,7 +43,7 @@ export default async function ProgressPage() {
         </div>
       ) : (
         <>
-          <div className="card">
+          <div className="card" data-tour="compare">
             <h2>Compare</h2>
             <PhotoCompare photos={photos} poses={poses} />
           </div>

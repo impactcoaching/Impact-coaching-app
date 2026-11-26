@@ -136,7 +136,7 @@ export function Diary({
         Food<span>{dayLabel(date, today)}</span>
       </h1>
 
-      <div className="daybar">
+      <div className="daybar" data-tour="daybar">
         <Link className="iconbtn" href={`/app/food?d=${addDays(date, -1)}`} aria-label="Previous day">
           ‹
         </Link>
@@ -164,7 +164,7 @@ export function Diary({
         <p className="alert">{planNotes}</p>
       ) : null}
 
-      <div className="card">
+      <div className="card" data-tour="targets">
         {dayTypes.length > 1 ? (
           <label className="field">
             <span>Today is a</span>
@@ -194,7 +194,7 @@ export function Diary({
         {t?.notes ? <p className="muted small" style={{ margin: 0 }}>{t.notes}</p> : null}
       </div>
 
-      <div className="card">
+      <div className="card" data-tour="water">
         <div className="row" style={{ justifyContent: "space-between" }}>
           <h2 style={{ margin: 0 }}>Water</h2>
           <span className="num">
@@ -224,7 +224,7 @@ export function Diary({
       </div>
 
       {style === "portions" && t ? (
-        <div className="card">
+        <div className="card" data-tour="portions">
           <h2>Hand portions</h2>
           {PORTIONS.map((p) => {
             const target = t[p.key];
@@ -253,7 +253,7 @@ export function Diary({
       ) : null}
 
       {style === "plan" && t?.meals.length ? (
-        <div className="card">
+        <div className="card" data-tour="meals">
           <h2>Your meals</h2>
           {t.meals.map((m, mi) => {
             const items = m.items.map((_, ii) => itemFor(mi, ii));
@@ -270,6 +270,7 @@ export function Diary({
                   </div>
                   <button
                     className={`mini ${done ? "done" : "pink"}`}
+                    data-tour="ate-this"
                     disabled={busy || done || !items.length}
                     onClick={() => run(() => logFoods({ date, meal: m.name, entries: items.map((it) => ({ food_id: it.food_id, grams: it.grams })) }))}
                   >
@@ -287,7 +288,7 @@ export function Diary({
                         {swapped ? <span className="chip pink" style={{ marginLeft: 6 }}>swapped</span> : null}
                       </span>
                       <span className="num muted small">{Math.round(it.grams)} g</span>
-                      <button className="mini" onClick={() => setSwap({ meal: mi, item: ii })} disabled={done}>
+                      <button className="mini" data-tour="swap" onClick={() => setSwap({ meal: mi, item: ii })} disabled={done}>
                         Swap
                       </button>
                     </div>
@@ -300,10 +301,10 @@ export function Diary({
         </div>
       ) : null}
 
-      <div className="card">
+      <div className="card" data-tour="diary">
         <div className="row" style={{ justifyContent: "space-between" }}>
           <h2 style={{ margin: 0 }}>Diary</h2>
-          <button className="mini pink" onClick={() => setOutPanel(true)}>
+          <button className="mini pink" data-tour="eat-out" onClick={() => setOutPanel(true)}>
             🍽 Eating out?
           </button>
         </div>
@@ -331,7 +332,7 @@ export function Diary({
                   </button>
                 </div>
               ))}
-              <button className="link small" style={{ alignSelf: "flex-start" }} onClick={() => setPicker({ meal })}>
+              <button className="link small" data-tour="add-food" style={{ alignSelf: "flex-start" }} onClick={() => setPicker({ meal })}>
                 + Add food
               </button>
             </div>
