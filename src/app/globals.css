@@ -203,3 +203,22 @@ dl.facts dd { margin: 0; }
 .restbar { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(78px + env(safe-area-inset-bottom)); z-index: 30; width: min(488px, calc(100% - 32px));
   display: flex; gap: 10px; align-items: center; justify-content: space-between; padding: 10px 14px; border-radius: 16px; background: rgba(20,16,20,.92); border: 1px solid rgba(255,46,136,.5); backdrop-filter: blur(12px); }
 .restbar b { font-family: var(--display); font-style: italic; font-size: 28px; }
+
+/* ---------- nutrition ---------- */
+.daybar { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-weight: 700; }
+.daybar .iconbtn { display: inline-flex; align-items: center; justify-content: center; text-decoration: none; font-size: 20px; }
+.kleft { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.kleft b { font-family: var(--display); font-style: italic; font-weight: 900; font-size: 46px; line-height: 1; color: var(--fg); text-shadow: 0 0 24px var(--pink-glow); }
+.kleft span { font-weight: 700; }
+.mbar { display: flex; flex-direction: column; gap: 5px; }
+.mbar-top { display: flex; justify-content: space-between; gap: 10px; font-size: 13.5px; }
+.mbar-track { height: 8px; border-radius: 8px; background: rgba(255,255,255,.08); overflow: hidden; }
+.mbar-track i { display: block; height: 100%; border-radius: 8px; background: linear-gradient(90deg, #ff2e88, #ff6fb0); box-shadow: 0 0 10px var(--pink-glow); }
+.mbar-track.over i { background: var(--warn); box-shadow: none; }
+.frow { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 8px; align-items: center; font-size: 14px; }
+.frow .ctl.num { width: 84px; text-align: center; padding: 8px 6px; }
+.bx .frow:has(.ctl) { grid-template-columns: minmax(0, 1fr) 84px auto auto; }
+.dsec { display: flex; flex-direction: column; gap: 8px; padding: 12px 0; border-top: 1px solid var(--line); }
+.prow { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 6px 0; flex-wrap: wrap; }
+.menuimg { max-width: 100%; max-height: 360px; border-radius: 12px; border: 1px solid var(--line); display: block; }
+.sep { border: 0; border-top: 1px solid var(--line); margin: 4px 0; width: 100%; }
