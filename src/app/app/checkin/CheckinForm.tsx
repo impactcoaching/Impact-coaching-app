@@ -2,7 +2,7 @@
 
 import { useRef, useState, useTransition } from "react";
 import { allowPhotos, submitCheckin } from "@/app/actions/checkins";
-import { CYCLE_PHASES, GENERAL, MEASUREMENTS, MODULES, type ModuleKey, type Question } from "@/lib/checkins";
+import { CYCLE_PHASES, GENERAL, MEASUREMENTS, MODULES, PERIOD_CHANGES, SCALE_MAX, type ModuleKey, type Question } from "@/lib/checkins";
 import { uploadFile } from "@/lib/upload";
 
 type Vals = Record<string, string | number>;
@@ -12,9 +12,12 @@ function Field({ q, value, onChange }: { q: Question; value: string | number | u
   if (q.kind === "scale")
     return (
       <div className="qblock">
-        <span className="qlabel">{q.label}</span>
+        <span className="qlabel">
+          {q.label}
+          {q.optional ? <span className="hint"> (optional)</span> : null}
+        </span>
         <div className="scale" role="radiogroup" aria-label={q.label}>
-          {[1, 2, 3, 4, 5].map((n) => (
+          {Array.from({ length: SCALE_MAX }, (_, i) => i + 1).map((n) => (
             <button key={n} type="button" role="radio" aria-checked={value === n} className={value === n ? "on" : ""} onClick={() => onChange(n)}>
               {n}
             </button>
@@ -31,7 +34,8 @@ function Field({ q, value, onChange }: { q: Question; value: string | number | u
       <label className="field">
         <span>
           {q.label}
-          {q.unit ? ` (${q.unit})` : ""}
+          {q.unit ? <span className="hint"> ({q.unit})</span> : null}
+          {q.optional ? <span className="hint"> (optional)</span> : null}
         </span>
         <input className="ctl num" inputMode="decimal" value={value ?? ""} onChange={(e) => onChange(num(e.target.value))} />
       </label>
@@ -39,7 +43,10 @@ function Field({ q, value, onChange }: { q: Question; value: string | number | u
   if (q.kind === "choice")
     return (
       <div className="qblock">
-        <span className="qlabel">{q.label}</span>
+        <span className="qlabel">
+          {q.label}
+          {q.optional ? <span className="hint"> (optional)</span> : null}
+        </span>
         <div className="row" style={{ gap: 6, flexWrap: "wrap" }}>
           {q.options.map((o) => (
             <button key={o} type="button" className={`mini${value === o ? " done" : ""}`} aria-pressed={value === o} onClick={() => onChange(o)}>
@@ -52,9 +59,14 @@ function Field({ q, value, onChange }: { q: Question; value: string | number | u
   return (
     <label className="field">
       <span>
-        {q.label} <span className="hint">(optional)</span>
+        {q.label}
+        {q.optional ? <span className="hint"> (optional)</span> : null}
       </span>
-      <textarea className="ctl" rows={2} value={value ?? ""} placeholder={q.placeholder} onChange={(e) => onChange(e.target.value)} />
+      {q.short ? (
+        <input className="ctl" value={value ?? ""} placeholder={q.placeholder} onChange={(e) => onChange(e.target.value)} />
+      ) : (
+        <textarea className="ctl" rows={2} value={value ?? ""} placeholder={q.placeholder} onChange={(e) => onChange(e.target.value)} />
+      )}
     </label>
   );
 }
@@ -65,6 +77,7 @@ export function CheckinForm({
   measurements,
   cycle,
   poses,
+  custom,
   photosAllowed,
   lastWeight,
 }: {
@@ -73,6 +86,7 @@ export function CheckinForm({
   measurements: boolean;
   cycle: boolean;
   poses: string[];
+  custom: string[];
   photosAllowed: boolean;
   lastWeight: number | null;
 }) {
@@ -81,6 +95,8 @@ export function CheckinForm({
   const [mod, setMod] = useState<Vals>({});
   const [meas, setMeas] = useState<Record<string, string>>({});
   const [phase, setPhase] = useState<string>("");
+  const [period, setPeriod] = useState<string>("");
+  const [extra, setExtra] = useState<Record<number, string>>({});
   const [cycleDay, setCycleDay] = useState("");
   const [cycleNote, setCycleNote] = useState("");
   const [photos, setPhotos] = useState<Record<string, { path?: string; preview: string; uploading: boolean }>>({});
@@ -118,7 +134,16 @@ export function CheckinForm({
         answers,
         module_answers: mod,
         measurements: measurements && Object.keys(m).length ? m : null,
-        cycle: cycle && phase ? { phase: phase as (typeof CYCLE_PHASES)[number], day: cycleDay ? Number(cycleDay) : null, note: cycleNote.trim() || null } : null,
+        cycle:
+          cycle && (phase || period)
+            ? {
+                phase: (phase || "Not sure") as (typeof CYCLE_PHASES)[number],
+                period: (period || null) as (typeof PERIOD_CHANGES)[number] | null,
+                day: cycleDay ? Number(cycleDay) : null,
+                note: cycleNote.trim() || null,
+              }
+            : null,
+        custom_answers: custom.map((q, i) => ({ q, a: (extra[i] ?? "").trim() })).filter((x) => x.a),
         photos: Object.entries(photos)
           .filter(([, p]) => p.path)
           .map(([pose, p]) => ({ pose, path: p.path! })),
@@ -131,6 +156,8 @@ export function CheckinForm({
         setMod({});
         setMeas({});
         setPhase("");
+        setPeriod("");
+        setExtra({});
         setCycleDay("");
         setCycleNote("");
         setPhotos({});
@@ -165,17 +192,20 @@ export function CheckinForm({
       </div>
 
       <div className="card">
-        <h2>Your week</h2>
+        <h2>How it went</h2>
         {GENERAL.map((q) => (
           <Field key={q.key} q={q} value={answers[q.key]} onChange={(v) => setAnswers((a) => ({ ...a, [q.key]: v }))} />
         ))}
       </div>
 
-      {moduleDef.questions.length ? (
+      {moduleDef.questions.length || custom.length ? (
         <div className="card">
-          <span className="eyebrow">{moduleDef.label}</span>
+          <span className="eyebrow">{moduleDef.questions.length ? moduleDef.label : "From Adam"}</span>
           {moduleDef.questions.map((q) => (
             <Field key={q.key} q={q} value={mod[q.key]} onChange={(v) => setMod((a) => ({ ...a, [q.key]: v }))} />
+          ))}
+          {custom.map((q, i) => (
+            <Field key={`c${i}`} q={{ kind: "text", key: `c${i}`, label: q }} value={extra[i]} onChange={(v) => setExtra((a) => ({ ...a, [i]: String(v) }))} />
           ))}
         </div>
       ) : null}
@@ -209,6 +239,18 @@ export function CheckinForm({
                 {p}
               </button>
             ))}
+          </div>
+          <div className="qblock">
+            <span className="qlabel">
+              Any changes to your period? <span className="hint">(optional)</span>
+            </span>
+            <div className="row" style={{ gap: 6, flexWrap: "wrap" }}>
+              {PERIOD_CHANGES.map((p) => (
+                <button key={p} type="button" className={`mini${period === p ? " done" : ""}`} aria-pressed={period === p} onClick={() => setPeriod(period === p ? "" : p)}>
+                  {p}
+                </button>
+              ))}
+            </div>
           </div>
           <div className="grid2">
             <label className="field">

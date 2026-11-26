@@ -23,7 +23,7 @@ create table public.checkins (
   client_id uuid not null references public.profiles (id) on delete cascade,
   module text not null default 'general',
   weight_kg numeric(5,1),
-  answers jsonb not null default '{}'::jsonb,        -- general questions (scores 1 to 5, steps, wins, struggles, questions)
+  answers jsonb not null default '{}'::jsonb,        -- general questions (scores 1 to 10, sleep, wins, what was hard, notes)
   module_answers jsonb not null default '{}'::jsonb, -- goal module questions
   measurements jsonb,                                -- cm, only when the coach has turned measurements on
   cycle jsonb,                                       -- only for clients who opted in to cycle tracking

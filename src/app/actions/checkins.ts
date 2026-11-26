@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireCoach, requireProfile } from "@/lib/auth";
-import { CYCLE_PHASES, GENERAL, MODULES, type ModuleKey } from "@/lib/checkins";
+import { CYCLE_PHASES, GENERAL, MODULES, PERIOD_CHANGES, type ModuleKey } from "@/lib/checkins";
 import { hasConsent, moduleFor } from "@/lib/checkins-server";
 import { todayIn } from "@/lib/nutrition";
 import { POLICY_VERSION } from "@/lib/options";
@@ -19,8 +19,9 @@ const checkinInput = z.object({
   answers: z.record(z.string().max(40), answerValue),
   module_answers: z.record(z.string().max(40), answerValue),
   measurements: z.record(z.string().max(20), z.number().min(10).max(300)).nullable(),
-  cycle: z.object({ phase: z.enum(CYCLE_PHASES), day: z.number().int().min(1).max(60).nullable(), note: z.string().max(500).nullable() }).nullable(),
+  cycle: z.object({ phase: z.enum(CYCLE_PHASES), period: z.enum(PERIOD_CHANGES).nullable().optional(), day: z.number().int().min(1).max(60).nullable(), note: z.string().max(500).nullable() }).nullable(),
   photos: z.array(photo).max(20),
+  custom_answers: z.array(z.object({ q: z.string().max(300), a: z.string().max(2000) })).max(20).optional(),
 });
 
 export async function submitCheckin(input: z.input<typeof checkinInput>): Promise<{ error?: string; ok?: boolean }> {
@@ -31,7 +32,7 @@ export async function submitCheckin(input: z.input<typeof checkinInput>): Promis
 
   const [module, { data: settings }, cycleOk, photosOk] = await Promise.all([
     moduleFor(supabase, user.id),
-    supabase.from("client_settings").select("measurements").eq("client_id", user.id).maybeSingle(),
+    supabase.from("client_settings").select("*").eq("client_id", user.id).maybeSingle(),
     hasConsent(supabase, user.id, "cycle_data"),
     hasConsent(supabase, user.id, "progress_photos"),
   ]);
@@ -41,6 +42,8 @@ export async function submitCheckin(input: z.input<typeof checkinInput>): Promis
   // Keep only answers to questions that exist, so nothing unexpected is stored.
   const keep = (vals: Record<string, string | number>, keys: string[]) => Object.fromEntries(Object.entries(vals).filter(([k, v]) => keys.includes(k) && v !== ""));
   const moduleKeys = MODULES[module].questions.map((q) => q.key);
+  const asked: string[] = (settings as { custom_questions?: string[] } | null)?.custom_questions ?? [];
+  const custom = (d.custom_answers ?? []).filter((x) => asked.includes(x.q) && x.a.trim());
 
   const { data: row, error } = await supabase
     .from("checkins")
@@ -52,6 +55,7 @@ export async function submitCheckin(input: z.input<typeof checkinInput>): Promis
       module_answers: keep(d.module_answers, moduleKeys),
       measurements: settings?.measurements ? d.measurements : null,
       cycle: cycleOk ? d.cycle : null,
+      ...(custom.length ? { custom_answers: custom } : {}),
     })
     .select("id")
     .single();
@@ -106,6 +110,7 @@ const settingsInput = z.object({
   measurements: z.boolean(),
   poses: z.array(z.string().trim().min(1).max(60)).max(20).nullable(),
   checkin_day: z.number().int().min(1).max(7).nullable(),
+  custom_questions: z.array(z.string().trim().min(1).max(300)).max(20),
 });
 
 export async function saveClientSettings(form: FormData) {
@@ -121,6 +126,10 @@ export async function saveClientSettings(form: FormData) {
     measurements: form.get("measurements") === "on",
     poses: form.get("use_template") === "on" ? null : poses.length ? poses : null,
     checkin_day: day >= 1 && day <= 7 ? day : null,
+    custom_questions: String(form.get("custom_questions") ?? "")
+      .split("\n")
+      .map((s) => s.trim())
+      .filter(Boolean),
   });
   if (!parsed.success) return;
   await supabase.from("client_settings").upsert(parsed.data, { onConflict: "client_id" });

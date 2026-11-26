@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { requireProfile } from "@/lib/auth";
-import { posesFor, WEEKDAY_NAMES } from "@/lib/checkins";
+import { GENERAL, MODULES, minutesFor, posesFor, WEEKDAY_NAMES } from "@/lib/checkins";
 import { hasConsent, moduleFor } from "@/lib/checkins-server";
 import { CheckinForm } from "./CheckinForm";
 
@@ -21,6 +21,9 @@ export default async function CheckinPage() {
     const { data } = await supabase.storage.from("checkin-replies").createSignedUrls(videos, 3600);
     data?.forEach((d) => d.path && d.signedUrl && (signed[d.path] = d.signedUrl));
   }
+  const poses = posesFor(settings?.poses, !!intake?.competes, intake?.division ?? null);
+  const custom: string[] = (settings as { custom_questions?: string[] } | null)?.custom_questions ?? [];
+  const mins = minutesFor(GENERAL.length + MODULES[module].questions.length + custom.length, photosAllowed ? poses.length : 0);
   const cycle = intake?.sex === "female" && !!intake?.cycle_tracking && cycleConsent;
   const fmt = (d: string) => new Date(d).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", timeZone: profile.time_zone || "Europe/London" });
 
@@ -31,7 +34,7 @@ export default async function CheckinPage() {
         Check-in<span>how&apos;s the week?</span>
       </h1>
       <p className="muted small" style={{ margin: 0 }}>
-        Check in any day{settings?.checkin_day ? `. Adam suggests ${WEEKDAY_NAMES[settings.checkin_day - 1]}s` : ""}. It takes about 10 minutes. <Link href="/app/progress">Your progress photos →</Link>
+        Check in any day{settings?.checkin_day ? `. Adam suggests ${WEEKDAY_NAMES[settings.checkin_day - 1]}s` : ""}. Be honest, it helps more than a perfect week does. Takes about {mins} minutes. <Link href="/app/progress">Your progress photos →</Link>
       </p>
 
       {(past ?? []).filter((c) => c.coach_reply || c.reply_video_path).slice(0, 1).map((c) => (
@@ -47,7 +50,8 @@ export default async function CheckinPage() {
         module={module}
         measurements={!!settings?.measurements}
         cycle={cycle}
-        poses={posesFor(settings?.poses, !!intake?.competes, intake?.division ?? null)}
+        poses={poses}
+        custom={custom}
         photosAllowed={photosAllowed}
         lastWeight={past?.find((c) => c.weight_kg != null)?.weight_kg ?? null}
       />

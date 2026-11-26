@@ -4,7 +4,7 @@ import { requireCoach } from "@/lib/auth";
 import { ClientTabs } from "@/components/ClientTabs";
 import { PhotoCompare, type Photo } from "@/components/PhotoCompare";
 import { markCheckinSeen, saveClientSettings } from "@/app/actions/checkins";
-import { GENERAL, MEASUREMENTS, MODULES, POSE_TEMPLATES, WEEKDAY_NAMES, posesFor, suggestModule, type ModuleKey, type Question } from "@/lib/checkins";
+import { GENERAL, MEASUREMENTS, MODULES, POSE_TEMPLATES, SCALE_MAX, WEEKDAY_NAMES, flagsFor, posesFor, suggestModule, type ModuleKey, type Question } from "@/lib/checkins";
 import { ReplyForm } from "./ReplyForm";
 
 type Answers = Record<string, string | number>;
@@ -41,7 +41,7 @@ function AnswerRows({ qs, now, before }: { qs: readonly Question[]; now: Answers
           <div key={q.key} style={{ display: "contents" }}>
             <dt>{q.label}</dt>
             <dd style={{ whiteSpace: "pre-wrap" }}>
-              {q.kind === "scale" ? `${now[q.key]}/5` : q.kind === "number" ? `${Number(now[q.key]).toLocaleString("en-GB")}${"unit" in q && q.unit ? ` ${q.unit}` : ""}` : String(now[q.key])}
+              {q.kind === "scale" ? `${now[q.key]}/${SCALE_MAX}` : q.kind === "number" ? `${Number(now[q.key]).toLocaleString("en-GB")}${"unit" in q && q.unit ? ` ${q.unit.split(",")[0]}` : ""}` : String(now[q.key])}
               {q.kind === "scale" || q.kind === "number" ? delta(now[q.key] as number, before?.[q.key] as number | undefined) : null}
             </dd>
           </div>
@@ -94,6 +94,9 @@ export default async function ClientCheckins({ params, searchParams }: { params:
     .map((x) => ({ d: x.created_at as string, w: Number(x.weight_kg) }));
   const fmt = (d: string) => new Date(d).toLocaleString("en-GB", { weekday: "short", day: "numeric", month: "short", hour: "numeric", minute: "2-digit", timeZone: tz });
   const curMod = (cur?.module as ModuleKey | undefined) ?? module;
+  const flags = cur ? flagsFor((cur.answers ?? {}) as Answers, (cur.module_answers ?? {}) as Answers, (cur.cycle as { period?: string | null } | null) ?? null) : [];
+  const customAnswers = ((cur as { custom_answers?: { q: string; a: string }[] } | undefined)?.custom_answers ?? []).filter((x) => x.a);
+  const customQs: string[] = (settings as { custom_questions?: string[] } | null)?.custom_questions ?? [];
 
   return (
     <>
@@ -135,6 +138,19 @@ export default async function ClientCheckins({ params, searchParams }: { params:
                 {delta(Number(cur.weight_kg), prev?.weight_kg != null ? Number(prev.weight_kg) : undefined, " kg")}
               </p>
             ) : null}
+            {flags.length ? (
+              <div className="flags">
+                {flags.map((f) => (
+                  <div key={f.label} className="flag">
+                    <span aria-hidden>⚑</span>
+                    <span>
+                      <b>{f.label}.</b> {f.detail}
+                    </span>
+                  </div>
+                ))}
+                <span className="muted small">Flags are prompts for a conversation, not a diagnosis.</span>
+              </div>
+            ) : null}
             <Trend points={weights} />
             <AnswerRows qs={GENERAL} now={cur.answers as Answers} before={(prev?.answers as Answers) ?? null} />
           </div>
@@ -143,6 +159,20 @@ export default async function ClientCheckins({ params, searchParams }: { params:
             <div className="card">
               <h2>{MODULES[curMod].label}</h2>
               <AnswerRows qs={MODULES[curMod].questions} now={cur.module_answers as Answers} before={prev?.module === cur.module ? ((prev?.module_answers as Answers) ?? null) : null} />
+            </div>
+          ) : null}
+
+          {customAnswers.length ? (
+            <div className="card">
+              <h2>Your questions</h2>
+              <dl className="facts">
+                {customAnswers.map((x, i) => (
+                  <div key={i} style={{ display: "contents" }}>
+                    <dt>{x.q}</dt>
+                    <dd style={{ whiteSpace: "pre-wrap" }}>{x.a}</dd>
+                  </div>
+                ))}
+              </dl>
             </div>
           ) : null}
 
@@ -170,6 +200,11 @@ export default async function ClientCheckins({ params, searchParams }: { params:
                 {(cur.cycle as { phase: string }).phase}
                 {(cur.cycle as { day: number | null }).day ? `, day ${(cur.cycle as { day: number }).day}` : ""}
               </p>
+              {(cur.cycle as { period?: string | null }).period ? (
+                <p className="small" style={{ margin: 0 }}>
+                  Changes to period: {(cur.cycle as { period: string }).period}
+                </p>
+              ) : null}
               {(cur.cycle as { note: string | null }).note ? <p className="muted small" style={{ margin: 0 }}>{(cur.cycle as { note: string }).note}</p> : null}
             </div>
           ) : null}
@@ -250,6 +285,12 @@ export default async function ClientCheckins({ params, searchParams }: { params:
                 </option>
               ))}
             </select>
+          </label>
+          <label className="field">
+            <span>
+              Your own questions for {first}, one per line <span className="hint">(added after the goal module)</span>
+            </span>
+            <textarea name="custom_questions" className="ctl" rows={Math.min(8, customQs.length + 2)} defaultValue={customQs.join("\n")} placeholder="How did the new glute session feel?" />
           </label>
           <label className="check">
             <input type="checkbox" name="measurements" defaultChecked={!!settings?.measurements} />

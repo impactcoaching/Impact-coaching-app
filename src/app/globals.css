@@ -233,8 +233,8 @@ dl.facts dd { margin: 0; }
 /* ---------- check-ins ---------- */
 .qblock { display: flex; flex-direction: column; gap: 6px; }
 .qlabel { font-size: 13px; font-weight: 600; }
-.scale { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
-.scale button { min-height: 44px; border-radius: 12px; border: 1px solid var(--line); background: rgba(0,0,0,.3); color: var(--fg); font-weight: 800; font-size: 16px; }
+.scale { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 4px; }
+.scale button { min-height: 44px; padding: 0; border-radius: 9px; border: 1px solid var(--line); background: rgba(0,0,0,.3); color: var(--fg); font-weight: 800; font-size: 14px; font-variant-numeric: tabular-nums; }
 .scale button.on { background: linear-gradient(90deg, #ff2e88, #ff5ca3); border-color: transparent; color: #fff; box-shadow: 0 6px 18px -8px var(--pink-glow); }
 .scale-ends { display: flex; justify-content: space-between; font-size: 11.5px; color: var(--muted); }
 .posegrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; }
@@ -284,3 +284,6 @@ input[type="range"] { width: 100%; accent-color: var(--pink); }
   padding: 8px; border: 1px solid var(--line); border-radius: 16px; background: rgba(17,16,20,.92); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
 .chat-input textarea { resize: none; min-height: 44px; max-height: 140px; }
 @media (min-width: 861px) { .coach-main .chat-input { bottom: 16px; } }
+.flags { display: flex; flex-direction: column; gap: 6px; }
+.flag { display: flex; gap: 10px; align-items: flex-start; background: rgba(255,190,60,.08); border: 1px solid rgba(255,190,60,.35); border-radius: 12px; padding: 9px 12px; font-size: 13px; }
+.flag b { color: #ffc861; }
