@@ -32,7 +32,7 @@ export default async function TrainPage({ searchParams }: { searchParams: Promis
             const n = (w.workout_exercises as unknown as { count: number }[])[0]?.count ?? 0;
             const when = last.get(w.id);
             return (
-              <Link key={w.id} href={`/app/train/${w.id}`} className="card" style={{ textDecoration: "none", color: "var(--fg)" }}>
+              <Link key={w.id} href={`/app/train/${w.id}`} className="card" data-tour="workout" style={{ textDecoration: "none", color: "var(--fg)" }}>
                 <div className="row" style={{ justifyContent: "space-between" }}>
                   <div>
                     <h2>{w.name}</h2>

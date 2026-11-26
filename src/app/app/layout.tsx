@@ -5,6 +5,7 @@ import { NavLink } from "@/components/NavLink";
 import { requireProfile } from "@/lib/auth";
 import { signOut } from "@/app/actions/auth";
 import { IntroReel } from "@/components/IntroReel";
+import { Tour } from "@/components/Tour";
 
 export default async function ClientLayout({ children }: { children: React.ReactNode }) {
   const { profile } = await requireProfile();
@@ -32,6 +33,7 @@ export default async function ClientLayout({ children }: { children: React.React
           <NavLink href="/app/messages">{Icon.chat}Messages</NavLink>
         </nav>
       </div>
+      <Tour />
     </>
   );
 }

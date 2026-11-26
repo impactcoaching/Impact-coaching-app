@@ -23,7 +23,7 @@ export function AddPhotos({ userId, poses }: { userId: string; poses: string[] }
   }
 
   return (
-    <div className="card">
+    <div className="card" data-tour="add-photos">
       <h2>Add a photo</h2>
       <label className="field">
         <span>Pose</span>
