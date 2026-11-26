@@ -19,6 +19,13 @@ Built with Next.js, TypeScript and Supabase (database, sign-in and file storage)
 3. Copy `.env.example` to `.env.local` and fill in the values from Supabase **Project Settings > API**.
 4. `npm install`, then `npm run dev`, and open http://localhost:3000.
 
+### Email templates
+
+So email links work in any browser (including the Gmail and Mail apps), in Supabase go to **Authentication > Emails > Templates** and change the links:
+
+- **Confirm signup**: `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email&next=/welcome`
+- **Reset password**: `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=recovery&next=/account/password`
+
 ### Make yourself the coach
 
 Sign up through `/join` like a client would. Then, in the Supabase SQL Editor, run:
