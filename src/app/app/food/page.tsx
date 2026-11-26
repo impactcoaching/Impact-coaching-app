@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { requireProfile } from "@/lib/auth";
 import { currentPeakWeek } from "@/lib/peak-server";
+import { aiEnabled } from "@/lib/ai";
 import { peakDate, peakLabel } from "@/lib/peak";
 import { isDate, pickDayType, showsKj, todayIn, type DayType, type Food, type Style } from "@/lib/nutrition";
 import { Diary, type LogRow } from "./Diary";
@@ -92,6 +93,7 @@ export default async function FoodPage({ searchParams }: { searchParams: Promise
       foods={[...all.values()]}
       recent={recent}
       outs={outs ?? []}
+      aiOn={aiEnabled()}
     />
     </>
   );
