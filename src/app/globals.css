@@ -76,6 +76,10 @@ label.field .hint { font-weight: 400; color: var(--muted); }
 .ctl { width: 100%; background: rgba(0, 0, 0, 0.35); border: 1px solid var(--line); border-radius: 12px; padding: 11px 12px; color: var(--fg); min-height: 44px; }
 .ctl:focus { border-color: var(--pink); outline: none; box-shadow: 0 0 0 3px var(--pink-soft); }
 textarea.ctl { min-height: 90px; resize: vertical; }
+/* iPhone date boxes have a built-in minimum width that pushes past the card */
+input[type="date"].ctl { display: block; min-width: 0; max-width: 100%; -webkit-appearance: none; appearance: none; text-align: left; }
+input[type="date"].ctl::-webkit-date-and-time-value { text-align: left; }
+.grid2 > * { min-width: 0; }
 /* iPhone Safari zooms into any field under 16px and stays zoomed */
 @media (pointer: coarse) { input, select, textarea { font-size: 16px !important; } }
 
@@ -87,6 +91,7 @@ textarea.ctl { min-height: 90px; resize: vertical; }
 .choice:has(input:checked) { border-color: var(--pink); background: var(--pink-soft); box-shadow: 0 0 16px -6px var(--pink-glow); }
 .choice:has(input:focus-visible) { outline: 2px solid var(--pink); outline-offset: 2px; }
 
+legend { padding: 0; }
 .check { display: flex; gap: 10px; align-items: flex-start; font-size: 14px; }
 .check input { width: 20px; height: 20px; accent-color: var(--pink); flex-shrink: 0; margin-top: 1px; }
 

@@ -28,6 +28,7 @@ const optDate = z
 const schema = z.object({
   date_of_birth: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Add your date of birth"),
   phone: optText(40),
+  sex: z.enum(["female", "male"], { message: "Please choose female or male" }),
   country: z.string().min(2).max(10),
   time_zone: z.string().max(60).optional(),
   goal: z.enum(["fat_loss", "muscle", "competition", "health", "performance"], { message: "Pick a goal" }),
@@ -76,6 +77,7 @@ export async function saveIntake(_: IntakeState, form: FormData): Promise<Intake
     client_id: user.id,
     date_of_birth: d.date_of_birth,
     phone: d.phone ?? null,
+    sex: d.sex,
     goal: d.goal,
     goal_detail: d.goal_detail ?? null,
     goal_date: d.goal_date ?? null,
@@ -90,7 +92,7 @@ export async function saveIntake(_: IntakeState, form: FormData): Promise<Intake
     injuries: d.injuries ?? null,
     nutrition_style: d.nutrition_style ?? null,
     dietary_needs: d.dietary_needs ?? null,
-    cycle_tracking: d.cycle_tracking === "on",
+    cycle_tracking: d.sex === "female" && d.cycle_tracking === "on",
     screening,
     screening_flag: screeningFlag,
     screening_details: d.screening_details ?? null,
@@ -109,7 +111,7 @@ export async function saveIntake(_: IntakeState, form: FormData): Promise<Intake
     { kind: "health_data", granted: true },
     { kind: "progress_photos", granted: d.consent_photos === "on" },
     { kind: "marketing_photos", granted: d.consent_marketing === "on" },
-    { kind: "cycle_data", granted: d.cycle_tracking === "on" },
+    { kind: "cycle_data", granted: d.sex === "female" && d.cycle_tracking === "on" },
   ].map((c) => ({ ...c, client_id: user.id, policy_version: POLICY_VERSION }));
   const { error: consentError } = await supabase.from("consents").insert(consents);
   if (consentError) return { error: "Something went wrong saving your consent. Please try again." };

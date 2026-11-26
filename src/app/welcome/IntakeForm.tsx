@@ -27,6 +27,7 @@ export function IntakeForm({ firstName }: { firstName: string }) {
   const [kit, setKit] = useState<EquipmentKey[]>(GYM_PRESETS.big.kit);
   const [screen, setScreen] = useState<Record<string, string>>({});
   const [tz, setTz] = useState("");
+  const [sex, setSex] = useState("");
   const formRef = useRef<HTMLFormElement>(null);
   const top = useRef<HTMLDivElement>(null);
 
@@ -84,10 +85,26 @@ export function IntakeForm({ firstName }: { firstName: string }) {
               <input className="ctl" type="date" name="date_of_birth" required max={new Date().toISOString().slice(0, 10)} />
             </label>
             <label className="field">
-              Mobile <span className="hint">optional</span>
+              <span>Mobile <span className="hint">(optional)</span></span>
               <input className="ctl" type="tel" name="phone" autoComplete="tel" />
             </label>
           </div>
+          <fieldset style={{ border: 0, padding: 0, margin: 0 }}>
+            <legend className="small" style={{ fontWeight: 600, marginBottom: 8 }}>
+              Sex
+            </legend>
+            <div className="choices" style={{ gridTemplateColumns: "repeat(2,minmax(0,1fr))" }}>
+              {[
+                ["female", "Female"],
+                ["male", "Male"],
+              ].map(([v, l]) => (
+                <label key={v} className="choice">
+                  <input type="radio" name="sex" value={v} required checked={sex === v} onChange={() => setSex(v)} />
+                  {l}
+                </label>
+              ))}
+            </div>
+          </fieldset>
           <label className="field">
             Where do you live?
             <select className="ctl" name="country" required defaultValue="">
@@ -116,11 +133,11 @@ export function IntakeForm({ firstName }: { firstName: string }) {
             ))}
           </div>
           <label className="field">
-            Tell Adam a bit more <span className="hint">optional</span>
+            <span>Tell Adam a bit more <span className="hint">(optional)</span></span>
             <textarea className="ctl" name="goal_detail" placeholder="For example: drop 8 kg for my sister's wedding, or my first bikini show next spring" />
           </label>
           <label className="field">
-            Is there a date you&apos;re working towards? <span className="hint">optional</span>
+            <span>Is there a date you&apos;re working towards? <span className="hint">(optional)</span></span>
             <input className="ctl" type="date" name="goal_date" />
           </label>
           <fieldset className="stack" style={{ border: 0, padding: 0, margin: 0, gap: 8 }}>
@@ -169,11 +186,11 @@ export function IntakeForm({ firstName }: { firstName: string }) {
           <h2>Your training</h2>
           <div className="grid2">
             <label className="field">
-              Height (cm) <span className="hint">optional</span>
+              <span>Height (cm) <span className="hint">(optional)</span></span>
               <input className="ctl num" name="height_cm" inputMode="decimal" type="number" min={100} max={250} step="0.1" />
             </label>
             <label className="field">
-              Weight today (kg) <span className="hint">optional</span>
+              <span>Weight today (kg) <span className="hint">(optional)</span></span>
               <input className="ctl num" name="start_weight_kg" inputMode="decimal" type="number" min={30} max={300} step="0.1" />
             </label>
             <label className="field">
@@ -209,7 +226,7 @@ export function IntakeForm({ firstName }: { firstName: string }) {
             </select>
           </label>
           <label className="field">
-            Any injuries, aches or exercises you can&apos;t do? <span className="hint">optional</span>
+            <span>Any injuries, aches or exercises you can&apos;t do? <span className="hint">(optional)</span></span>
             <textarea className="ctl" name="injuries" placeholder="For example: left shoulder clicks on overhead pressing" />
           </label>
         </section>
@@ -275,9 +292,10 @@ export function IntakeForm({ firstName }: { firstName: string }) {
             </div>
           </fieldset>
           <label className="field">
-            Allergies, intolerances, or foods you don&apos;t eat <span className="hint">optional</span>
+            <span>Allergies, intolerances, or foods you don&apos;t eat <span className="hint">(optional)</span></span>
             <textarea className="ctl" name="dietary_needs" placeholder="For example: vegetarian, no dairy, hate mushrooms" />
           </label>
+          {sex === "female" ? (
           <label className="check">
             <input type="checkbox" name="cycle_tracking" />
             <span>
@@ -285,6 +303,7 @@ export function IntakeForm({ firstName }: { firstName: string }) {
               <span className="muted">Optional. You can switch it off at any time.</span>
             </span>
           </label>
+          ) : null}
         </section>
 
         {/* 6. Health screening */}

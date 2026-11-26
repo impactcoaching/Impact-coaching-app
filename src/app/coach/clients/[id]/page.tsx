@@ -92,6 +92,8 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
             <section className="card">
               <h2>About</h2>
               <dl className="facts">
+                <dt>Sex</dt>
+                <dd>{intake.sex === "female" ? "Female" : intake.sex === "male" ? "Male" : "–"}</dd>
                 <dt>Age</dt>
                 <dd>{age(intake.date_of_birth) ?? "–"}</dd>
                 <dt>Lives in</dt>
