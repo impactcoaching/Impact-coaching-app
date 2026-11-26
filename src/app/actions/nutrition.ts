@@ -18,7 +18,7 @@ export async function searchSupermarket(q: string, country: string | null): Prom
   await requireProfile();
   const query = q.trim().slice(0, 80);
   if (query.length < 2) return { foods: [] };
-  return searchOff(query, country);
+  return searchOff(query, country, true);
 }
 
 const foodInput = z.object({

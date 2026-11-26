@@ -51,24 +51,66 @@ function toFood(p: OffProduct): FoundFood | null {
   };
 }
 
-export async function searchOff(q: string, country: string | null): Promise<{ foods: FoundFood[]; error?: string }> {
-  const host = HOST[country ?? ""] ?? "world";
+const COUNTRY_TAG: Record<string, string> = { UK: "en:united-kingdom", NZ: "en:new-zealand", AU: "en:australia", US: "en:united-states", IE: "en:ireland" };
+const BUSY = "The supermarket search is busy. Try again in a minute.";
+const DOWN = "The supermarket search isn't answering right now.";
+
+type Attempt = { foods: FoundFood[]; error?: string };
+const clean = (list: (OffProduct | undefined)[]) => list.map((p) => (p ? toFood(p) : null)).filter((x): x is FoundFood => !!x);
+
+/**
+ * Search Open Food Facts. Works from the browser (each phone gets its own rate limit)
+ * and from the server. Tries the newer fast search first, then the classic one.
+ * Pass server = true to send a proper User-Agent (browsers don't allow it).
+ */
+export async function searchOff(q: string, country: string | null, server = false): Promise<Attempt> {
+  const init: RequestInit = { cache: "no-store", ...(server ? { headers: HEADERS } : {}) };
+  const timeout = (ms: number) => ({ ...init, signal: AbortSignal.timeout(ms) });
   const code = q.replace(/\s/g, "");
-  try {
-    if (/^\d{8,14}$/.test(code)) {
-      const res = await fetch(`https://world.openfoodfacts.org/api/v2/product/${code}.json?fields=${FIELDS}`, { headers: HEADERS, signal: AbortSignal.timeout(6000), cache: "no-store" });
-      if (!res.ok) return { foods: [] };
+  const notes: string[] = [];
+
+  if (/^\d{8,14}$/.test(code)) {
+    try {
+      const res = await fetch(`https://world.openfoodfacts.org/api/v2/product/${code}.json?fields=${FIELDS}`, timeout(8000));
+      if (res.status === 404) return { foods: [] };
+      if (!res.ok) return { foods: [], error: res.status === 429 ? BUSY : `${DOWN} (${res.status})` };
       const j = (await res.json()) as { product?: OffProduct };
-      const f = j.product ? toFood({ ...j.product, code }) : null;
-      return { foods: f ? [f] : [] };
+      return { foods: clean([j.product ? { ...j.product, code } : undefined]) };
+    } catch (e) {
+      return { foods: [], error: `${DOWN} (${(e as Error).name})` };
     }
-    const url = `https://${host}.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(q)}&search_simple=1&action=process&json=1&page_size=20&fields=${FIELDS}`;
-    const res = await fetch(url, { headers: HEADERS, signal: AbortSignal.timeout(8000), cache: "no-store" });
-    if (res.status === 429) return { foods: [], error: "The supermarket search is busy. Try again in a minute." };
-    if (!res.ok) return { foods: [], error: "The supermarket search isn't answering right now." };
-    const j = (await res.json()) as { products?: OffProduct[] };
-    return { foods: (j.products ?? []).map(toFood).filter((x): x is FoundFood => !!x) };
-  } catch {
-    return { foods: [], error: "The supermarket search isn't answering right now." };
   }
+
+  // 1. Search-a-licious, the newer fast search.
+  try {
+    const tag = COUNTRY_TAG[country ?? ""];
+    const query = tag ? `${q} countries_tags:"${tag}"` : q;
+    const res = await fetch(`https://search.openfoodfacts.org/search?q=${encodeURIComponent(query)}&page_size=20&langs=en&fields=${FIELDS}`, timeout(7000));
+    if (res.ok) {
+      const j = (await res.json()) as { hits?: OffProduct[] };
+      const foods = clean(j.hits ?? []);
+      if (foods.length || !tag) return { foods };
+      // Nothing for this country: try everywhere before giving up.
+      const res2 = await fetch(`https://search.openfoodfacts.org/search?q=${encodeURIComponent(q)}&page_size=20&langs=en&fields=${FIELDS}`, timeout(7000));
+      if (res2.ok) return { foods: clean(((await res2.json()) as { hits?: OffProduct[] }).hits ?? []) };
+      notes.push(`s${res2.status}`);
+    } else notes.push(`s${res.status}`);
+  } catch (e) {
+    notes.push(`s-${(e as Error).name}`);
+  }
+
+  // 2. The classic search, on the country's own site.
+  try {
+    const host = HOST[country ?? ""] ?? "world";
+    const res = await fetch(
+      `https://${host}.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(q)}&search_simple=1&action=process&json=1&page_size=20&fields=${FIELDS}`,
+      timeout(10000),
+    );
+    if (res.ok) return { foods: clean(((await res.json()) as { products?: OffProduct[] }).products ?? []) };
+    if (res.status === 429) return { foods: [], error: BUSY };
+    notes.push(`c${res.status}`);
+  } catch (e) {
+    notes.push(`c-${(e as Error).name}`);
+  }
+  return { foods: [], error: `${DOWN} (${notes.join(", ")})` };
 }

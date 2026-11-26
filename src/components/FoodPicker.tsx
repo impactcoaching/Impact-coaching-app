@@ -3,6 +3,7 @@
 import { useMemo, useState, useTransition } from "react";
 import { saveFood, searchSupermarket } from "@/app/actions/nutrition";
 import { energyText, forGrams, type Food, type FoundFood } from "@/lib/nutrition";
+import { searchOff } from "@/lib/openfoodfacts";
 
 type Picked = Food | FoundFood;
 
@@ -62,7 +63,13 @@ export function FoodPicker({
   function searchShops() {
     setMsg(null);
     start(async () => {
-      const r = await searchSupermarket(q, country);
+      // Search from the phone first (its own rate limit), then via our server.
+      let r = await searchOff(q.trim(), country);
+      if (r.error) {
+        const viaServer = await searchSupermarket(q, country);
+        if (!viaServer.error || viaServer.foods.length) r = viaServer;
+        else r = { foods: [], error: viaServer.error };
+      }
       setFound(r.foods);
       if (r.error) setMsg(r.error);
       else if (!r.foods.length) setMsg("Nothing found. Try fewer words, or add it yourself from the label.");

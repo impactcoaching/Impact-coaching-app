@@ -81,7 +81,8 @@ input[type="date"].ctl { display: block; min-width: 0; max-width: 100%; -webkit-
 input[type="date"].ctl::-webkit-date-and-time-value { text-align: left; }
 .grid2 > * { min-width: 0; }
 /* iPhone Safari zooms into any field under 16px and stays zoomed */
-@media (pointer: coarse) { input, select, textarea { font-size: 16px !important; } }
+@media (pointer: coarse), (max-width: 860px) { input, select, textarea { font-size: 16px !important; } }
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 
 .choices { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
 .choice { position: relative; display: flex; flex-direction: column; gap: 2px; border: 1px solid var(--line); background: rgba(0, 0, 0, 0.3);
