@@ -11,7 +11,7 @@ const STEPS: Step[] = [
   { title: "Quick look round?", body: "Five tabs along the bottom. Here's what each one does. It takes about 30 seconds." },
   { target: '.tabbar a[href="/app"]', title: "Home", body: "Your week at a glance: what's on today, your countdown and anything from me." },
   { target: '.tabbar a[href="/app/train"]', title: "Train", body: "Your programme. Log each set as you go, and film a set if you want me to check your form." },
-  { target: '.tabbar a[href="/app/food"]', title: "Nutrition", body: "Your targets and food diary. Scan or search foods, add your own, and log meals out." },
+  { target: '.tabbar a[href="/app/food"]', title: "Nutrition", body: "Your targets and food diary. Search foods or type a barcode, add your own, and log meals out." },
   { target: '.tabbar a[href="/app/checkin"]', title: "Check-in", body: "Fill it in on your check-in day. Score your week out of 10, add photos, and I'll reply." },
   { target: '.tabbar a[href="/app/messages"]', title: "Messages", body: "Straight to me. Questions, wins, wobbles, all welcome." },
   { target: 'a[href="/app/progress"]', title: "Progress photos", body: "Your photos side by side, so you can see how far you've come." },
