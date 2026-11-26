@@ -1,5 +1,6 @@
 "use server";
 
+import { inFolder } from "@/lib/paths";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireCoach, requireProfile } from "@/lib/auth";
@@ -37,7 +38,7 @@ export async function submitCheckin(input: z.input<typeof checkinInput>): Promis
     hasConsent(supabase, user.id, "progress_photos"),
   ]);
   if (d.photos.length && !photosOk) return { error: "Turn on progress photos first, then add them." };
-  if (d.photos.some((p) => !p.path.startsWith(`${user.id}/`))) return { error: "A photo couldn't be attached." };
+  if (d.photos.some((p) => !inFolder(p.path, user.id))) return { error: "A photo couldn't be attached." };
 
   // Keep only answers to questions that exist, so nothing unexpected is stored.
   const keep = (vals: Record<string, string | number>, keys: string[]) => Object.fromEntries(Object.entries(vals).filter(([k, v]) => keys.includes(k) && v !== ""));
@@ -75,7 +76,7 @@ export async function addPhotos(input: { photos: z.input<typeof photo>[] }): Pro
   const parsed = z.array(photo).min(1).max(20).safeParse(input.photos);
   if (!parsed.success) return { error: "Couldn't add those photos." };
   if (!(await hasConsent(supabase, user.id, "progress_photos"))) return { error: "Turn on progress photos first." };
-  if (parsed.data.some((p) => !p.path.startsWith(`${user.id}/`))) return { error: "A photo couldn't be attached." };
+  if (parsed.data.some((p) => !inFolder(p.path, user.id))) return { error: "A photo couldn't be attached." };
   const { error } = await supabase.from("progress_photos").insert(parsed.data.map((p) => ({ ...p, client_id: user.id, taken_on: todayIn(profile.time_zone) })));
   if (error) return { error: "Couldn't save the photos. Please try again." };
   revalidatePath("/app/progress");
@@ -146,7 +147,7 @@ export async function replyCheckin(input: z.input<typeof replyInput>): Promise<{
   if (!reply && !video_path) return { error: "Write a reply or add a video first." };
   const { data: c } = await supabase.from("checkins").select("client_id").eq("id", id).single();
   if (!c) return { error: "That check-in no longer exists." };
-  if (video_path && !video_path.startsWith(`${c.client_id}/`)) return { error: "That video is in the wrong place." };
+  if (video_path && !inFolder(video_path, c.client_id)) return { error: "That video is in the wrong place." };
   const { data, error } = await supabase
     .from("checkins")
     .update({ coach_reply: reply, reply_video_path: video_path, replied_at: new Date().toISOString(), coach_seen_at: new Date().toISOString() })
@@ -185,7 +186,7 @@ export async function sendMessage(input: z.input<typeof messageInput>): Promise<
   const { clientId, body, attachment_path, attachment_type } = parsed.data;
   if (profile.role !== "coach" && clientId !== user.id) return { error: "Couldn't send that message." };
   if (!body && !attachment_path) return { error: "Write a message first." };
-  if (attachment_path && (!attachment_path.startsWith(`${clientId}/`) || !attachment_type)) return { error: "That file couldn't be attached." };
+  if (attachment_path && (!inFolder(attachment_path, clientId) || !attachment_type)) return { error: "That file couldn't be attached." };
   const { error } = await supabase.from("messages").insert({ client_id: clientId, sender_id: user.id, body: body || null, attachment_path, attachment_type });
   if (error) return { error: "Couldn't send that message. Please try again." };
   revalidatePath(profile.role === "coach" ? `/coach/messages/${clientId}` : "/app/messages");

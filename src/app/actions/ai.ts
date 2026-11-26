@@ -1,5 +1,6 @@
 "use server";
 
+import { inFolder } from "@/lib/paths";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
@@ -107,6 +108,7 @@ Rules for the draft:
 - notes: one short coaching cue per exercise, or "".
 - Programme notes: 2 to 4 sentences on the split, progression and anything you avoided because of injuries.`;
 
+  await supabase.from("ai_calls").insert({ client_id: clientId.data, kind: "programme" });
   const res = await draftWithAi({ schema: ProgrammeDraft, prompt, effort: "medium" });
   if ("error" in res) return { error: res.error };
   const d = res.data;
@@ -211,6 +213,7 @@ Rules for the draft:
 - Do not include water, sodium or salt anywhere, not even in notes.
 - Notes: 2 to 4 sentences on how you set the targets, so Adam can check the reasoning.`;
 
+  await supabase.from("ai_calls").insert({ client_id: clientId.data, kind: "nutrition" });
   const res = await draftWithAi({ schema: NutritionDraft, prompt, effort: "medium" });
   if ("error" in res) return { error: res.error };
   const d = res.data;
@@ -281,6 +284,7 @@ const MenuPicks = z4.object({
 
 export type MenuPick = { name: string; why: string; ask_for: string; kcal: number; protein_g: number; carbs_g: number; fat_g: number };
 const remainingInput = z.object({ kcal: z.number(), protein_g: z.number(), carbs_g: z.number(), fat_g: z.number() }).partial();
+const MENU_DAILY_LIMIT = 8;
 const IMAGE_TYPES = { jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png", webp: "image/webp", gif: "image/gif" } as const;
 
 /** Read a menu photo and rank the dishes by how well they fit what's left of today. Estimates only. */
@@ -288,11 +292,17 @@ export async function suggestFromMenu(input: { photo_path: string; remaining: z.
   const { supabase, user } = await requireProfile();
   if (!aiEnabled()) return { error: "Menu suggestions aren't switched on yet. Send it to Adam instead." };
   const path = String(input.photo_path ?? "");
-  if (!path.startsWith(`${user.id}/`) || path.includes("..")) return { error: "That photo couldn't be read." };
+  if (!inFolder(path, user.id)) return { error: "That photo couldn't be read." };
   const ext = path.split(".").pop()?.toLowerCase() as keyof typeof IMAGE_TYPES | undefined;
   const mediaType = ext ? IMAGE_TYPES[ext] : undefined;
   if (!mediaType) return { error: "Suggestions work with JPEG, PNG or WebP photos. Send this one to Adam instead." };
   const remaining = remainingInput.safeParse(input.remaining);
+  // Cap menu suggestions per client, so the AI bill can't run away.
+  const since = new Date(Date.now() - 86_400_000).toISOString();
+  const { count } = await supabase.from("ai_calls").select("id", { count: "exact", head: true }).eq("client_id", user.id).eq("kind", "menu").gte("created_at", since);
+  if ((count ?? 0) >= MENU_DAILY_LIMIT) return { error: `That's ${MENU_DAILY_LIMIT} menus in a day, the most for now. Send this one to Adam instead.` };
+  const { error: logErr } = await supabase.from("ai_calls").insert({ client_id: user.id, kind: "menu" });
+  if (logErr) return { error: "Menu suggestions aren't available right now. Send it to Adam instead." };
   const { data: file, error } = await supabase.storage.from("menu-photos").download(path);
   if (error || !file) return { error: "Couldn't open the photo. Please try again." };
   if (file.size > 5_000_000) return { error: "That photo is too big for suggestions. Send it to Adam instead." };

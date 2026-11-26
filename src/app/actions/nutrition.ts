@@ -1,5 +1,6 @@
 "use server";
 
+import { inFolder } from "@/lib/paths";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireCoach, requireProfile } from "@/lib/auth";
@@ -269,7 +270,7 @@ export async function sendEatingOut(input: z.input<typeof eatingOutInput>): Prom
   if (!parsed.success) return { error: "Couldn't send that. Please try again." };
   const { photo_path, note, remaining } = parsed.data;
   if (!photo_path && !note) return { error: "Add a photo of the menu or a note first." };
-  if (photo_path && !photo_path.startsWith(`${user.id}/`)) return { error: "That photo couldn't be attached." };
+  if (photo_path && !inFolder(photo_path, user.id)) return { error: "That photo couldn't be attached." };
   const { error } = await supabase.from("eating_out").insert({ client_id: user.id, photo_path, note, remaining });
   if (error) return { error: "Couldn't send that. Please try again." };
   revalidatePath("/app/food");

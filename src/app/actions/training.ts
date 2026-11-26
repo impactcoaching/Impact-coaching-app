@@ -1,5 +1,6 @@
 "use server";
 
+import { inFolder } from "@/lib/paths";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
@@ -140,7 +141,7 @@ export async function finishWorkout(input: z.input<typeof finishSchema>): Promis
   const { data: w } = await supabase.from("workouts").select("name").eq("id", workoutId).single();
   if (!w) return { error: "This session isn't in your programme any more." };
   // Videos must be in the client's own folder.
-  if (sets.some((s) => s.video_path && !s.video_path.startsWith(`${user.id}/`))) return { error: "That video couldn't be attached." };
+  if (sets.some((s) => s.video_path && !inFolder(s.video_path, user.id))) return { error: "That video couldn't be attached." };
   const { data: log, error } = await supabase
     .from("workout_logs")
     .insert({ client_id: user.id, workout_id: workoutId, workout_name: w.name, started_at: startedAt, finished_at: new Date().toISOString(), client_note: note })
