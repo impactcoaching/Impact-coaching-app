@@ -139,7 +139,7 @@ export function Tracker({ workoutId, name, notes, exercises, userId }: { workout
         <span className="muted small num">
           {done} of {total} sets done
         </span>
-        <div className="steps" aria-hidden="true">
+        <div className="steps" aria-hidden="true" data-tour="progress">
           <i className="on" style={{ flex: `0 0 ${total ? (done / total) * 100 : 0}%` }} />
         </div>
       </div>
@@ -149,14 +149,14 @@ export function Tracker({ workoutId, name, notes, exercises, userId }: { workout
         const linked = e.linked_to_previous || (i + 1 < exercises.length && exercises[i + 1].linked_to_previous);
         return (
           <section key={e.id} className={`card ex${e.linked_to_previous ? " linked" : ""}`} style={e.linked_to_previous ? { marginTop: -8, borderLeft: "2px solid var(--pink)" } : linked ? { borderLeft: "2px solid var(--pink)" } : undefined}>
-            <div className="ex-head">
+            <div className="ex-head" data-tour="ex-head">
               <div>
                 <span className="eyebrow">
                   {labels[i]}
                   {linked && !e.linked_to_previous ? ` · ${groupName(groupSizeFrom(i))}, no rest between` : ""}
                 </span>
                 <h2>{e.name}</h2>
-                <div className="ex-meta">
+                <div className="ex-meta" data-tour="ex-meta">
                   {e.work_sets} × {repsText(e)}
                   {effortText(e) ? ` @ ${effortText(e)}` : ""}
                   {e.tempo ? ` · tempo ${e.tempo}` : ""}
@@ -164,7 +164,7 @@ export function Tracker({ workoutId, name, notes, exercises, userId }: { workout
                 </div>
               </div>
               {e.demo_url ? (
-                <a className="mini pink" href={e.demo_url} target="_blank" rel="noopener">
+                <a className="mini pink" href={e.demo_url} target="_blank" rel="noopener" data-tour="demo">
                   ▶ Demo
                 </a>
               ) : null}
@@ -186,11 +186,11 @@ export function Tracker({ workoutId, name, notes, exercises, userId }: { workout
                 const film = kind === "work" && e.film_set === n;
                 const hasInt = kind === "work" && intOn(e, n);
                 return (
-                  <div key={k} className="srow">
+                  <div key={k} className="srow" data-tour="set">
                     <span className={`n${kind === "warmup" ? " w" : ""}`}>{kind === "warmup" ? `W${n}` : n}</span>
                     <input className="ctl num" inputMode="decimal" placeholder={prev?.split(" × ")[0] ?? "kg"} value={r.weight} onChange={(v) => set(k, { weight: v.target.value })} aria-label={`Set ${n} weight`} />
                     <input className="ctl num" inputMode="numeric" placeholder={prev?.split(" × ")[1] ?? "reps"} value={r.reps} onChange={(v) => set(k, { reps: v.target.value })} aria-label={`Set ${n} reps`} />
-                    <button className="tick" aria-pressed={r.done} onClick={() => tick(e, i, kind, n)} aria-label={`Set ${n} done`}>
+                    <button className="tick" data-tour="tick" aria-pressed={r.done} onClick={() => tick(e, i, kind, n)} aria-label={`Set ${n} done`}>
                       ✓
                     </button>
                     {prev ? <span className="prev">Last time {prev}</span> : null}
@@ -198,13 +198,13 @@ export function Tracker({ workoutId, name, notes, exercises, userId }: { workout
                       <div className="srow-extra">
                         {/* Intensifier sits beside its set and opens a side panel */}
                         {hasInt ? (
-                          <button className={`mini ${r.int ? "done" : "pink"}`} onClick={() => setPanel({ ex: e, set: n })}>
+                          <button data-tour="int" className={`mini ${r.int ? "done" : "pink"}`} onClick={() => setPanel({ ex: e, set: n })}>
                             ⚡ {INTENSIFIERS[e.intensifier!.type].label}
                             {r.int ? " ✓" : ""}
                           </button>
                         ) : null}
                         {film ? (
-                          <button className={`mini ${r.video ? "done" : "pink"}`} onClick={() => chooseVideo(k)} disabled={r.uploading}>
+                          <button data-tour="film" className={`mini ${r.video ? "done" : "pink"}`} onClick={() => chooseVideo(k)} disabled={r.uploading}>
                             {r.uploading ? "Uploading…" : r.video ? "Video added ✓" : "🎥 Film this set for Adam"}
                           </button>
                         ) : null}
@@ -226,7 +226,7 @@ export function Tracker({ workoutId, name, notes, exercises, userId }: { workout
           <textarea className="ctl" value={note} onChange={(e) => setNote(e.target.value)} placeholder="e.g. Left knee felt a bit sore on the hack squat" />
         </label>
         {error ? <p className="alert error" role="alert">{error}</p> : null}
-        <button className="btn primary block" onClick={finish} disabled={saving}>
+        <button className="btn primary block" data-tour="finish" onClick={finish} disabled={saving}>
           {saving ? "Saving…" : "Finish workout"}
         </button>
       </section>

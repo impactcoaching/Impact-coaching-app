@@ -67,7 +67,7 @@ export default async function ClientPeak() {
           <p style={{ margin: 0, whiteSpace: "pre-wrap" }}>{week.notes}</p>
         </div>
       ) : null}
-      <div className="ptable">
+      <div className="ptable" data-tour="peak-days">
         {days.map((d) => {
           const date = peakDate(week.show_date, d.day_offset);
           const cls = date === today ? " today" : date < today ? " past" : "";

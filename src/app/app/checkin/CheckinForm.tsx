@@ -181,7 +181,7 @@ export function CheckinForm({
 
   return (
     <div className="stack">
-      <div className="card">
+      <div className="card" data-tour="ci-weight">
         <h2>Weight</h2>
         <label className="field">
           <span>
@@ -191,7 +191,7 @@ export function CheckinForm({
         </label>
       </div>
 
-      <div className="card">
+      <div className="card" data-tour="ci-scores">
         <h2>How it went</h2>
         {GENERAL.map((q) => (
           <Field key={q.key} q={q} value={answers[q.key]} onChange={(v) => setAnswers((a) => ({ ...a, [q.key]: v }))} />
@@ -199,7 +199,7 @@ export function CheckinForm({
       </div>
 
       {moduleDef.questions.length || custom.length ? (
-        <div className="card">
+        <div className="card" data-tour="ci-module">
           <span className="eyebrow">{moduleDef.questions.length ? moduleDef.label : "From Adam"}</span>
           {moduleDef.questions.map((q) => (
             <Field key={q.key} q={q} value={mod[q.key]} onChange={(v) => setMod((a) => ({ ...a, [q.key]: v }))} />
@@ -211,7 +211,7 @@ export function CheckinForm({
       ) : null}
 
       {measurements ? (
-        <div className="card">
+        <div className="card" data-tour="ci-measure">
           <h2>Measurements</h2>
           <p className="muted small" style={{ margin: 0 }}>
             In cm, measured the same way each time. Skip any you don&apos;t do.
@@ -228,7 +228,7 @@ export function CheckinForm({
       ) : null}
 
       {cycle ? (
-        <div className="card">
+        <div className="card" data-tour="ci-cycle">
           <h2>Your cycle</h2>
           <p className="muted small" style={{ margin: 0 }}>
             Helps Adam read changes in weight, hunger and energy. Only you and Adam see this.
@@ -269,7 +269,7 @@ export function CheckinForm({
         </div>
       ) : null}
 
-      <div className="card">
+      <div className="card" data-tour="ci-photos">
         <h2>Photos</h2>
         {!photosAllowed ? (
           <>
@@ -324,7 +324,7 @@ export function CheckinForm({
           {msg.error}
         </p>
       ) : null}
-      <button className="btn primary" onClick={send} disabled={busy}>
+      <button className="btn primary" data-tour="ci-send" onClick={send} disabled={busy}>
         {busy ? "Sending…" : "Send check-in to Adam"}
       </button>
     </div>

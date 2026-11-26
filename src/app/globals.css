@@ -362,3 +362,10 @@ input[type="range"] { width: 100%; accent-color: var(--pink); }
   .intro.scene .intro-brand span, .intro.scene .intro-brand b, .intro.scene .intro-brand small { animation: none; opacity: 1; transform: none; filter: none; letter-spacing: .5em; }
   .intro.scene .intro-brand span, .intro.scene .intro-brand b { letter-spacing: normal; }
 }
+/* ---------- app tour ---------- */
+.tour { position: fixed; inset: 0; z-index: 40; }
+.tour-dim { position: absolute; inset: 0; background: rgba(0,0,0,.72); }
+.tour-ring { position: fixed; border-radius: 14px; box-shadow: 0 0 0 9999px rgba(0,0,0,.72), 0 0 0 2px var(--pink), 0 0 24px var(--pink-glow); transition: all .3s cubic-bezier(.2,.8,.2,1); pointer-events: none; }
+.tour-card { position: fixed; left: 16px; right: 16px; max-width: 420px; margin: 0 auto; gap: 10px; background: rgba(20,18,20,.96); }
+.tour-card.mid { top: 50%; transform: translateY(-50%); }
+@media (prefers-reduced-motion: reduce) { .tour-ring { transition: none; } }

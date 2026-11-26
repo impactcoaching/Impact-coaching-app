@@ -1,3 +1,4 @@
+import { ReplayTour } from "@/components/Tour";
 import Link from "next/link";
 import { requireProfile } from "@/lib/auth";
 import { todayIn } from "@/lib/nutrition";
@@ -44,6 +45,9 @@ export default async function ClientHome({ searchParams }: { searchParams: Promi
           </Link>
         </div>
       )}
+      <div style={{ textAlign: "center", paddingTop: 8 }}>
+        <ReplayTour />
+      </div>
     </>
   );
 }
