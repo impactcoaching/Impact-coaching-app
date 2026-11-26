@@ -81,20 +81,39 @@ export async function searchOff(q: string, country: string | null, server = fals
     }
   }
 
-  // 1. Search-a-licious, the newer fast search.
+  // 1. Search-a-licious, the newer fast search. It finds products by name; we then fetch
+  // their nutrition in one go from the product API, because the search index may not
+  // carry full nutrition and asking it for unknown fields is refused (400).
+  const salicious = async (query: string) => {
+    const res = await fetch(`https://search.openfoodfacts.org/search?q=${encodeURIComponent(query)}&page_size=20&langs=en`, timeout(7000));
+    if (!res.ok) {
+      notes.push(`s${res.status}`);
+      return null;
+    }
+    const hits = ((await res.json()) as { hits?: OffProduct[] }).hits ?? [];
+    return hits;
+  };
   try {
     const tag = COUNTRY_TAG[country ?? ""];
-    const query = tag ? `${q} countries_tags:"${tag}"` : q;
-    const res = await fetch(`https://search.openfoodfacts.org/search?q=${encodeURIComponent(query)}&page_size=20&langs=en&fields=${FIELDS}`, timeout(7000));
-    if (res.ok) {
-      const j = (await res.json()) as { hits?: OffProduct[] };
-      const foods = clean(j.hits ?? []);
-      if (foods.length || !tag) return { foods };
-      // Nothing for this country: try everywhere before giving up.
-      const res2 = await fetch(`https://search.openfoodfacts.org/search?q=${encodeURIComponent(q)}&page_size=20&langs=en&fields=${FIELDS}`, timeout(7000));
-      if (res2.ok) return { foods: clean(((await res2.json()) as { hits?: OffProduct[] }).hits ?? []) };
-      notes.push(`s${res2.status}`);
-    } else notes.push(`s${res.status}`);
+    let hits = tag ? await salicious(`${q} countries_tags:"${tag}"`) : null;
+    if (!hits || !hits.length) hits = await salicious(q);
+    if (hits) {
+      if (!hits.length) return { foods: [] };
+      const direct = clean(hits);
+      if (direct.length >= Math.min(5, hits.length)) return { foods: direct };
+      const codes = hits.map((h) => h.code).filter((c): c is string => !!c).slice(0, 20);
+      if (codes.length) {
+        const res = await fetch(`https://world.openfoodfacts.org/api/v2/search?code=${codes.join(",")}&page_size=20&fields=${FIELDS}`, timeout(8000));
+        if (res.ok) {
+          const products = ((await res.json()) as { products?: OffProduct[] }).products ?? [];
+          // Keep search order.
+          const byCode = new Map(products.map((p) => [p.code, p]));
+          const foods = clean(codes.map((c) => byCode.get(c)));
+          if (foods.length) return { foods };
+          notes.push("p0");
+        } else notes.push(`p${res.status}`);
+      }
+    }
   } catch (e) {
     notes.push(`s-${(e as Error).name}`);
   }
