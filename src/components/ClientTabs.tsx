@@ -3,6 +3,7 @@ import Link from "next/link";
 const TABS = [
   { key: "overview", label: "Overview", path: "" },
   { key: "training", label: "Training", path: "/training" },
+  { key: "nutrition", label: "Nutrition", path: "/nutrition" },
 ];
 
 export function ClientTabs({ id, active }: { id: string; active: string }) {

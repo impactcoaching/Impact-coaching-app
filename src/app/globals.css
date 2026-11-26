@@ -81,7 +81,8 @@ input[type="date"].ctl { display: block; min-width: 0; max-width: 100%; -webkit-
 input[type="date"].ctl::-webkit-date-and-time-value { text-align: left; }
 .grid2 > * { min-width: 0; }
 /* iPhone Safari zooms into any field under 16px and stays zoomed */
-@media (pointer: coarse) { input, select, textarea { font-size: 16px !important; } }
+@media (pointer: coarse), (max-width: 860px) { input, select, textarea { font-size: 16px !important; } }
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 
 .choices { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
 .choice { position: relative; display: flex; flex-direction: column; gap: 2px; border: 1px solid var(--line); background: rgba(0, 0, 0, 0.3);
@@ -134,7 +135,7 @@ legend { padding: 0; }
 .coach-main { padding: 28px 28px 80px; max-width: 1100px; width: 100%; display: flex; flex-direction: column; gap: 18px; }
 .coach-mtop { display: none; }
 @media (max-width: 860px) {
-  .coach { grid-template-columns: 1fr; }
+  .coach { grid-template-columns: minmax(0, 1fr); }
   .side { display: none; }
   .coach-mtop { display: flex; justify-content: space-between; align-items: center; padding: max(14px, env(safe-area-inset-top)) 16px 0; }
   .coach-main { padding: 16px 16px 120px; }
@@ -203,3 +204,28 @@ dl.facts dd { margin: 0; }
 .restbar { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(78px + env(safe-area-inset-bottom)); z-index: 30; width: min(488px, calc(100% - 32px));
   display: flex; gap: 10px; align-items: center; justify-content: space-between; padding: 10px 14px; border-radius: 16px; background: rgba(20,16,20,.92); border: 1px solid rgba(255,46,136,.5); backdrop-filter: blur(12px); }
 .restbar b { font-family: var(--display); font-style: italic; font-size: 28px; }
+
+/* ---------- nutrition ---------- */
+.daybar { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-weight: 700; }
+.daybar .iconbtn { display: inline-flex; align-items: center; justify-content: center; text-decoration: none; font-size: 20px; }
+.kleft { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.kleft b { font-family: var(--display); font-style: italic; font-weight: 900; font-size: 46px; line-height: 1; color: var(--fg); text-shadow: 0 0 24px var(--pink-glow); }
+.kleft span { font-weight: 700; }
+.mbar { display: flex; flex-direction: column; gap: 5px; }
+.mbar-top { display: flex; justify-content: space-between; gap: 10px; font-size: 13.5px; }
+.mbar-track { height: 8px; border-radius: 8px; background: rgba(255,255,255,.08); overflow: hidden; }
+.mbar-track i { display: block; height: 100%; border-radius: 8px; background: linear-gradient(90deg, #ff2e88, #ff6fb0); box-shadow: 0 0 10px var(--pink-glow); }
+.mbar-track.over i { background: var(--warn); box-shadow: none; }
+.frow { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 8px; align-items: center; font-size: 14px; }
+.frow .ctl.num { width: 84px; text-align: center; padding: 8px 6px; }
+.bx .frow:has(.ctl) { grid-template-columns: minmax(0, 1fr) 84px auto auto; }
+.dsec { display: flex; flex-direction: column; gap: 8px; padding: 12px 0; border-top: 1px solid var(--line); }
+.prow { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 6px 0; flex-wrap: wrap; }
+.menuimg { max-width: 100%; max-height: 360px; border-radius: 12px; border: 1px solid var(--line); display: block; }
+.sep { border: 0; border-top: 1px solid var(--line); margin: 4px 0; width: 100%; }
+
+/* Keep wide content (tables, grids) inside the screen: flex and grid children
+   otherwise grow to fit their content and push the page sideways on phones. */
+.coach-main, .coach-main > *, .capp > *, .card > *, .stack > *, .bx > * { min-width: 0; }
+.tbl-wrap { max-width: 100%; }
+.card { min-width: 0; max-width: 100%; }

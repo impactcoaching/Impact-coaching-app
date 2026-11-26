@@ -18,6 +18,8 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   themeColor: "#060607",
   viewportFit: "cover",
+  // Stops iPhone Safari zooming in when a field is tapped. People can still pinch to zoom.
+  maximumScale: 1,
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
