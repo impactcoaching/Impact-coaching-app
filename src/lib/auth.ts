@@ -8,6 +8,7 @@ export type Profile = {
   status: "signing_up" | "pending" | "active" | "paused" | "ended";
   country: string | null;
   time_zone: string | null;
+  intro_seen_at?: string | null;
 };
 
 /** The signed-in person and their profile, or a redirect to sign-in. */
