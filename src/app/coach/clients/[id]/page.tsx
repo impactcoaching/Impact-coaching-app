@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireCoach } from "@/lib/auth";
-import { setClientStatus } from "@/app/actions/coach";
+import { StatusControl } from "@/components/StatusControl";
 import { COUNTRIES, EQUIPMENT, EXPERIENCE, GOALS, NUTRITION_STYLES, SCREENING, type EquipmentKey } from "@/lib/options";
 
 const label = <T extends { value: string; label: string }>(list: readonly T[], v: string | null) => list.find((x) => x.value === v)?.label ?? v ?? "–";
@@ -48,24 +48,7 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
           <span className="eyebrow">{intake ? label(GOALS, intake.goal) : "Still signing up"}</span>
           <h1>{c.full_name || "No name yet"}</h1>
         </div>
-        <form action={setClientStatus} className="row">
-          <input type="hidden" name="id" value={c.id} />
-          {c.status === "pending" ? (
-            <button className="btn primary" name="status" value="active">
-              Accept as a client
-            </button>
-          ) : null}
-          {c.status === "active" ? (
-            <button className="btn" name="status" value="paused">
-              Pause
-            </button>
-          ) : null}
-          {c.status === "paused" ? (
-            <button className="btn primary" name="status" value="active">
-              Restart
-            </button>
-          ) : null}
-        </form>
+        <StatusControl key={c.status} id={c.id} status={c.status} />
       </div>
 
       {!intake ? (
