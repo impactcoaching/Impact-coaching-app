@@ -14,7 +14,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         <span>{reset ? "password" : "back"}</span>
       </h1>
       {sp.error === "profile" ? <p className="alert">Your account isn&apos;t fully set up yet. Please message Adam so he can sort it out.</p> : null}
-      {sp.error === "link" ? <p className="alert">That link has expired or was already used. Sign in, or ask for a new one.</p> : null}
+      {sp.error === "link" ? <p className="alert">That link couldn&apos;t sign you in, but your email is most likely confirmed. Sign in below. If it says your email isn&apos;t confirmed, sign up again to get a new link.</p> : null}
       <div className="card">
         {reset ? (
           <AuthForm action={sendReset} submit="Send reset link" fields={[{ name: "email", label: "Email", type: "email", autoComplete: "email" }]} />
