@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireCoach } from "@/lib/auth";
 import { setClientStatus } from "@/app/actions/coach";
+import { ClientTabs } from "@/components/ClientTabs";
 import { COUNTRIES, EQUIPMENT, EXPERIENCE, GOALS, NUTRITION_STYLES, SCREENING, type EquipmentKey } from "@/lib/options";
 
 const label = <T extends { value: string; label: string }>(list: readonly T[], v: string | null) => list.find((x) => x.value === v)?.label ?? v ?? "–";
@@ -68,6 +69,7 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
         </form>
       </div>
 
+      <ClientTabs id={c.id} active="overview" />
       {!intake ? (
         <div className="card">
           <p className="muted" style={{ margin: 0 }}>
