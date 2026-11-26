@@ -328,6 +328,40 @@ input[type="range"] { width: 100%; accent-color: var(--pink); }
 .btn.big { font-family: var(--display); font-weight: 900; font-style: italic; text-transform: uppercase; font-size: 20px; letter-spacing: .04em; padding: 14px 22px; border-radius: 14px; }
 .intro video { transition: filter .8s ease; } .intro.done video { filter: brightness(.5) saturate(.9); }
 
+/* ---------- animated intro scene (no video) ---------- */
+.intro.scene { background: #050505; }
+.intro.scene .intro-text { top: 0; bottom: 0; justify-content: center; gap: 14px; }
+.intro.scene .intro-shade { background: radial-gradient(120% 80% at 50% 50%, transparent 40%, rgba(0,0,0,.7)); }
+.scene-bg { position: absolute; inset: 0; overflow: hidden; }
+.scene-bg::after { content: ""; position: absolute; inset: 0; opacity: .07; background-image: repeating-linear-gradient(115deg, #fff 0 1px, transparent 1px 7px); mix-blend-mode: overlay; }
+.scene-bg .glow { position: absolute; left: 50%; top: 50%; width: 140vmax; height: 140vmax; transform: translate(-50%, -50%) scale(.2); border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,46,136,.55) 0, rgba(255,46,136,.18) 22%, transparent 45%); opacity: 0;
+  animation: glowIn 1.6s cubic-bezier(.2,.8,.2,1) .2s forwards, glowPulse 3.2s ease-in-out 2s infinite; }
+.scene-bg .streak { position: absolute; height: 3px; width: 60vw; left: -70vw; border-radius: 3px; transform: skewX(-20deg);
+  background: linear-gradient(90deg, transparent, var(--pink), #fff); box-shadow: 0 0 18px var(--pink-glow); animation: streak .9s cubic-bezier(.5,0,.2,1) forwards; }
+.scene-bg .s1 { top: 38%; animation-delay: .25s; }
+.scene-bg .s2 { top: 62%; height: 2px; animation-delay: .4s; }
+.scene-bg .s3 { top: 46%; height: 1px; width: 40vw; animation-delay: .55s; opacity: .7; }
+.scene-bg .flash { position: absolute; inset: 0; background: radial-gradient(circle at 50% 50%, rgba(255,92,163,.35), transparent 60%); opacity: 0; animation: flash .7s ease-out 1.05s; }
+.intro.scene .intro-brand { opacity: 1; transform: none; animation: none; display: flex; flex-wrap: wrap; justify-content: center; align-items: baseline; font-size: clamp(56px, 19vw, 110px); }
+.intro.scene .intro-brand span { display: inline-block; opacity: 0; transform: translateX(-40px) skewX(-12deg) scale(1.3); filter: blur(6px); animation: slam .45s cubic-bezier(.2,.9,.25,1.2) forwards; }
+.intro.scene .intro-brand b { display: inline-block; opacity: 0; transform: scale(0); animation: pop .5s cubic-bezier(.2,1.6,.4,1) 1.05s forwards; }
+.intro.scene .intro-brand small { flex-basis: 100%; text-align: center; opacity: 0; letter-spacing: 1.2em; animation: track .9s cubic-bezier(.2,.8,.2,1) 1.35s forwards; font-size: 14px; }
+.intro.scene .intro-hi { animation-delay: 2.1s; margin-top: 18px; }
+.intro.scene .intro-go { margin-top: 26px; }
+@keyframes glowIn { to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
+@keyframes glowPulse { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.35); } }
+@keyframes streak { 0% { left: -70vw; } 100% { left: 130vw; } }
+@keyframes flash { 0% { opacity: 0; } 30% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes slam { to { opacity: 1; transform: none; filter: none; } }
+@keyframes pop { to { opacity: 1; transform: none; } }
+@keyframes track { from { letter-spacing: 1.2em; } to { opacity: 1; letter-spacing: .5em; } }
+@media (prefers-reduced-motion: reduce) {
+  .scene-bg .glow { animation: none; opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  .scene-bg .streak, .scene-bg .flash { display: none; }
+  .intro.scene .intro-brand span, .intro.scene .intro-brand b, .intro.scene .intro-brand small { animation: none; opacity: 1; transform: none; filter: none; letter-spacing: .5em; }
+  .intro.scene .intro-brand span, .intro.scene .intro-brand b { letter-spacing: normal; }
+}
 /* ---------- app tour ---------- */
 .tour { position: fixed; inset: 0; z-index: 40; }
 .tour-dim { position: absolute; inset: 0; background: rgba(0,0,0,.72); }
