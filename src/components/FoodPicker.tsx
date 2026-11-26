@@ -68,7 +68,8 @@ export function FoodPicker({
       if (r.error) {
         const viaServer = await searchSupermarket(q, country);
         if (!viaServer.error || viaServer.foods.length) r = viaServer;
-        else r = { foods: [], error: viaServer.error };
+        // Show both codes (phone and server) so a failure can be traced.
+        else r = { foods: [], error: `${viaServer.error.replace(/\s*\(.*\)$/, "")} (phone: ${r.error.match(/\((.*)\)$/)?.[1] ?? "?"}; server: ${viaServer.error.match(/\((.*)\)$/)?.[1] ?? "?"})` };
       }
       setFound(r.foods);
       if (r.error) setMsg(r.error);

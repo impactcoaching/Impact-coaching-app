@@ -51,7 +51,6 @@ function toFood(p: OffProduct): FoundFood | null {
   };
 }
 
-const COUNTRY_TAG: Record<string, string> = { UK: "en:united-kingdom", NZ: "en:new-zealand", AU: "en:australia", US: "en:united-states", IE: "en:ireland" };
 const BUSY = "The supermarket search is busy. Try again in a minute.";
 const DOWN = "The supermarket search isn't answering right now.";
 
@@ -85,7 +84,13 @@ export async function searchOff(q: string, country: string | null, server = fals
   // their nutrition in one go from the product API, because the search index may not
   // carry full nutrition and asking it for unknown fields is refused (400).
   const salicious = async (query: string) => {
-    const res = await fetch(`https://search.openfoodfacts.org/search?q=${encodeURIComponent(query)}&page_size=20&langs=en`, timeout(7000));
+    let res: Response;
+    try {
+      res = await fetch(`https://search.openfoodfacts.org/search?q=${encodeURIComponent(query)}&page_size=20&langs=en`, timeout(7000));
+    } catch (e) {
+      notes.push(`s-${(e as Error).name}`);
+      return null;
+    }
     if (!res.ok) {
       notes.push(`s${res.status}`);
       return null;
@@ -94,9 +99,13 @@ export async function searchOff(q: string, country: string | null, server = fals
     return hits;
   };
   try {
-    const tag = COUNTRY_TAG[country ?? ""];
-    let hits = tag ? await salicious(`${q} countries_tags:"${tag}"`) : null;
-    if (!hits || !hits.length) hits = await salicious(q);
+    // The country filter made the search refuse the request (400), so search everywhere.
+    let hits = await salicious(q);
+    if (!hits) {
+      // One retry after a short pause: the search sometimes drops a request when busy.
+      await new Promise((r) => setTimeout(r, 1200));
+      hits = await salicious(q);
+    }
     if (hits) {
       if (!hits.length) return { foods: [] };
       const direct = clean(hits);
@@ -115,7 +124,7 @@ export async function searchOff(q: string, country: string | null, server = fals
       }
     }
   } catch (e) {
-    notes.push(`s-${(e as Error).name}`);
+    notes.push(`p-${(e as Error).name}`);
   }
 
   // 2. The classic search, on the country's own site.
