@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireCoach } from "@/lib/auth";
+import { ClientTabs } from "@/components/ClientTabs";
 import { StatusControl } from "@/components/StatusControl";
 import { COUNTRIES, EQUIPMENT, EXPERIENCE, GOALS, NUTRITION_STYLES, SCREENING, type EquipmentKey } from "@/lib/options";
 
@@ -51,6 +52,7 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
         <StatusControl key={c.status} id={c.id} status={c.status} />
       </div>
 
+      <ClientTabs id={c.id} active="overview" />
       {!intake ? (
         <div className="card">
           <p className="muted" style={{ margin: 0 }}>
