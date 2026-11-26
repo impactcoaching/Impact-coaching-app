@@ -6,6 +6,8 @@ import { createNutritionPlan, replyEatingOut, setNutritionLive } from "@/app/act
 import { NUTRITION_STYLES } from "@/lib/options";
 import { STYLES, addDays, dayLabel, energyText, pickDayType, showsKj, sum, todayIn, type DayType, type Food, type Style } from "@/lib/nutrition";
 import { PlanBuilder } from "./PlanBuilder";
+import { AiDraft } from "@/components/AiDraft";
+import { aiEnabled } from "@/lib/ai";
 
 type DayRow = Omit<DayType, "meals"> & {
   id: string;
@@ -15,8 +17,9 @@ type DayRow = Omit<DayType, "meals"> & {
 
 const pct = (a: number, b: number | null) => (b ? Math.round((a / b) * 100) : null);
 
-export default async function NutritionPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function NutritionPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ drafted?: string }> }) {
   const { id } = await params;
+  const sp = await searchParams;
   const { supabase } = await requireCoach();
   const { data: c } = await supabase.from("profiles").select("id, full_name, country, time_zone").eq("id", id).eq("role", "client").maybeSingle();
   if (!c) notFound();
@@ -90,6 +93,9 @@ export default async function NutritionPage({ params }: { params: Promise<{ id: 
           ) : null}
         </p>
       ) : null}
+
+      {sp.drafted ? <p className="alert ok small" style={{ margin: 0 }}>AI draft ready below. Check the targets, set sodium and water if you use them, then make it live.</p> : null}
+      <AiDraft kind="nutrition" clientId={c.id} first={first} style={(plan?.style as string | undefined) ?? defaultStyle} aiOn={aiEnabled()} />
 
       {!plan ? (
         <div className="card">

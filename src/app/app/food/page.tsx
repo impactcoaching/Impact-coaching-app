@@ -1,4 +1,8 @@
+import Link from "next/link";
 import { requireProfile } from "@/lib/auth";
+import { currentPeakWeek } from "@/lib/peak-server";
+import { aiEnabled } from "@/lib/ai";
+import { peakDate, peakLabel } from "@/lib/peak";
 import { isDate, pickDayType, showsKj, todayIn, type DayType, type Food, type Style } from "@/lib/nutrition";
 import { Diary, type LogRow } from "./Diary";
 
@@ -62,7 +66,16 @@ export default async function FoodPage({ searchParams }: { searchParams: Promise
   const recentIds = [...new Set((recentLogs ?? []).map((r) => r.food_id as string))].slice(0, 12);
   const recent = recentIds.map((id) => all.get(id)).filter((f): f is Food => !!f);
 
+  const peak = await currentPeakWeek(supabase, user.id, today);
+  const peakDay = peak?.days.find((d) => peakDate(peak.week.show_date, d.day_offset) === date) ?? null;
+
   return (
+    <>
+      {peakDay ? (
+        <Link href="/app/peak" className="alert ok" style={{ textDecoration: "none", color: "var(--fg)" }}>
+          <b>Peak week: {peakLabel(peakDay.day_offset).toLowerCase()}.</b> Follow Adam&apos;s peak week plan for today&apos;s carbs, water and sodium. See the plan →
+        </Link>
+      ) : null}
     <Diary
       key={date}
       userId={user.id}
@@ -80,6 +93,8 @@ export default async function FoodPage({ searchParams }: { searchParams: Promise
       foods={[...all.values()]}
       recent={recent}
       outs={outs ?? []}
+      aiOn={aiEnabled()}
     />
+    </>
   );
 }

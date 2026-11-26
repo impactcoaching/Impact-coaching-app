@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo, useRef, useState, useTransition } from "react";
 import { deleteFoodLog, logFoods, saveDay, sendEatingOut } from "@/app/actions/nutrition";
+import { logRestaurantEstimate, suggestFromMenu, type MenuPick } from "@/app/actions/ai";
 import { FoodPicker } from "@/components/FoodPicker";
 import { createClient } from "@/lib/supabase/client";
 import {
@@ -21,7 +22,7 @@ import {
   type Totals,
 } from "@/lib/nutrition";
 
-export type LogRow = Totals & { id: string; meal: string; name: string; grams: number; eating_out: boolean };
+export type LogRow = Totals & { id: string; meal: string; name: string; grams: number | null; eating_out: boolean };
 type Out = { id: string; note: string | null; coach_reply: string | null; replied_at: string | null; created_at: string };
 
 const EATING_OUT = "Eating out";
@@ -66,6 +67,7 @@ export function Diary({
   foods: initialFoods,
   recent,
   outs,
+  aiOn,
 }: {
   userId: string;
   date: string;
@@ -82,6 +84,7 @@ export function Diary({
   foods: Food[];
   recent: Food[];
   outs: Out[];
+  aiOn: boolean;
 }) {
   const [foods, setFoods] = useState(initialFoods);
   const [water, setWater] = useState(initialWater);
@@ -319,7 +322,7 @@ export function Diary({
                     {l.name}
                     <span className="muted small">
                       {" "}
-                      · {Math.round(Number(l.grams))} g · P {Number(l.protein_g)} · C {Number(l.carbs_g)} · F {Number(l.fat_g)}
+                      {l.grams != null ? `${Math.round(Number(l.grams))} g · ` : ""}P {Number(l.protein_g)} · C {Number(l.carbs_g)} · F {Number(l.fat_g)}
                     </span>
                   </span>
                   <span className="num small">{Math.round(Number(l.kcal))}</span>
@@ -386,6 +389,8 @@ export function Diary({
       {outPanel ? (
         <EatingOut
           userId={userId}
+          date={date}
+          aiOn={aiOn}
           left={t ? { kcal: Math.round((t.kcal ?? 0) - totals.kcal), protein_g: Math.round((t.protein_g ?? 0) - totals.protein_g), carbs_g: Math.round((t.carbs_g ?? 0) - totals.carbs_g), fat_g: Math.round((t.fat_g ?? 0) - totals.fat_g) } : null}
           kj={kj}
           outs={outs}
@@ -402,6 +407,8 @@ export function Diary({
 
 function EatingOut({
   userId,
+  date,
+  aiOn,
   left,
   kj,
   outs,
@@ -409,6 +416,8 @@ function EatingOut({
   onClose,
 }: {
   userId: string;
+  date: string;
+  aiOn: boolean;
   left: { kcal: number; protein_g: number; carbs_g: number; fat_g: number } | null;
   kj: boolean;
   outs: Out[];
@@ -421,23 +430,57 @@ function EatingOut({
   const [msg, setMsg] = useState<{ ok?: string; error?: string } | null>(null);
   const [busy, start] = useTransition();
   const waiting = outs.find((o) => !o.coach_reply);
+  const [uploaded, setUploaded] = useState<{ file: File; path: string } | null>(null);
+  const [picks, setPicks] = useState<{ picks: MenuPick[]; tip?: string } | null>(null);
+  const [logged, setLogged] = useState<string[]>([]);
+
+  /** Upload the photo once, and reuse it for suggestions and for Adam. */
+  async function upload(): Promise<string | null | { error: string }> {
+    if (!file) return null;
+    if (uploaded?.file === file) return uploaded.path;
+    if (file.size > 15 * 1024 * 1024) return { error: "That photo is too big. Try a screenshot instead." };
+    const ext = (file.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
+    const path = `${userId}/${crypto.randomUUID()}.${ext}`;
+    const { error } = await createClient().storage.from("menu-photos").upload(path, file, { contentType: file.type || "image/jpeg" });
+    if (error) return { error: "The photo didn't upload. Check your signal and try again." };
+    setUploaded({ file, path });
+    return path;
+  }
+
+  function suggest() {
+    setMsg(null);
+    setPicks(null);
+    start(async () => {
+      const up = await upload();
+      if (up && typeof up === "object") return setMsg({ error: up.error });
+      if (!up) return setMsg({ error: "Add a photo of the menu first." });
+      const r = await suggestFromMenu({ photo_path: up, remaining: left ?? {} });
+      if (r.error || !r.picks) return setMsg({ error: r.error ?? "No suggestions came back." });
+      setPicks({ picks: r.picks, tip: r.tip });
+    });
+  }
+
+  function logPick(p: MenuPick) {
+    setMsg(null);
+    start(async () => {
+      const r = await logRestaurantEstimate({ date, meal: EATING_OUT, name: p.name, kcal: p.kcal, protein_g: p.protein_g, carbs_g: p.carbs_g, fat_g: p.fat_g });
+      if (r.error) setMsg({ error: r.error });
+      else setLogged((l) => [...l, p.name]);
+    });
+  }
 
   function send() {
     setMsg(null);
     start(async () => {
-      let path: string | null = null;
-      if (file) {
-        if (file.size > 15 * 1024 * 1024) return setMsg({ error: "That photo is too big. Try a screenshot instead." });
-        const ext = (file.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
-        path = `${userId}/${crypto.randomUUID()}.${ext}`;
-        const { error } = await createClient().storage.from("menu-photos").upload(path, file, { contentType: file.type || "image/jpeg" });
-        if (error) return setMsg({ error: "The photo didn't upload. Check your signal and try again." });
-      }
+      const up = await upload();
+      if (up && typeof up === "object") return setMsg({ error: up.error });
+      const path = up;
       const r = await sendEatingOut({ photo_path: path, note: note.trim() || null, remaining: left ?? {} });
       if (r.error) setMsg({ error: r.error });
       else {
         setMsg({ ok: "Sent to Adam. His reply will show at the top of this page." });
         setFile(null);
+        setUploaded(null);
         setNote("");
       }
     });
@@ -457,7 +500,7 @@ function EatingOut({
           </button>
         </div>
         <p className="muted small" style={{ margin: 0 }}>
-          Snap the menu and Adam will tell you what fits your day best.
+          {aiOn ? "Snap the menu for instant suggestions, or send it to Adam for his pick." : "Snap the menu and Adam will tell you what fits your day best."}
         </p>
         {left ? (
           <p className="alert ok small" style={{ margin: 0 }}>
@@ -465,7 +508,16 @@ function EatingOut({
           </p>
         ) : null}
         {waiting ? <p className="alert small" style={{ margin: 0 }}>Adam hasn&apos;t replied to your last one yet.</p> : null}
-        <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
+        <input
+          ref={fileRef}
+          type="file"
+          accept="image/*"
+          hidden
+          onChange={(e) => {
+            setFile(e.target.files?.[0] ?? null);
+            setPicks(null);
+          }}
+        />
         <button className="btn" onClick={() => fileRef.current?.click()}>
           {file ? `📷 ${file.name.slice(0, 30)}` : "📷 Take or choose a photo"}
         </button>
@@ -475,10 +527,41 @@ function EatingOut({
           </span>
           <textarea className="ctl" rows={2} value={note} onChange={(e) => setNote(e.target.value)} placeholder="e.g. Italian place, I fancy pasta" />
         </label>
+        {aiOn ? (
+          <button className="btn primary" onClick={suggest} disabled={busy || !file}>
+            {busy && !picks ? "Reading the menu…" : "✨ Suggest what fits my day"}
+          </button>
+        ) : null}
+        {picks ? (
+          <div className="stack" style={{ gap: 8 }}>
+            <span className="muted small">Best fit first. Numbers are estimates for a normal portion, so treat them as a guide.</span>
+            {picks.picks.map((p, i) => (
+              <div key={i} className="menupick">
+                <div className="row" style={{ justifyContent: "space-between", gap: 8, alignItems: "flex-start" }}>
+                  <b>
+                    {i + 1}. {p.name}
+                  </b>
+                  <span className="num small">{energyText(p.kcal, kj)}</span>
+                </div>
+                <span className="small">{p.why}</span>
+                {p.ask_for ? <span className="small muted">Ask for: {p.ask_for}</span> : null}
+                <div className="row" style={{ justifyContent: "space-between", gap: 8 }}>
+                  <span className="muted small">
+                    P {p.protein_g} · C {p.carbs_g} · F {p.fat_g}
+                  </span>
+                  <button className="mini" onClick={() => logPick(p)} disabled={busy || logged.includes(p.name)}>
+                    {logged.includes(p.name) ? "Logged ✓" : "I had this"}
+                  </button>
+                </div>
+              </div>
+            ))}
+            {picks.tip ? <p className="small" style={{ margin: 0 }}>{picks.tip}</p> : null}
+          </div>
+        ) : null}
         {msg?.error ? <p className="alert error small">{msg.error}</p> : null}
         {msg?.ok ? <p className="alert ok small">{msg.ok}</p> : null}
-        <button className="btn primary" onClick={send} disabled={busy || (!file && !note.trim())}>
-          {busy ? "Sending…" : "Send to Adam"}
+        <button className={`btn${aiOn ? "" : " primary"}`} onClick={send} disabled={busy || (!file && !note.trim())}>
+          {busy && !aiOn ? "Sending…" : "Send to Adam"}
         </button>
         <hr className="sep" />
         <button className="btn" onClick={onLog}>

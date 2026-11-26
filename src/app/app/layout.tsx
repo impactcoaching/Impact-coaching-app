@@ -4,13 +4,16 @@ import { Icon } from "@/components/Icons";
 import { NavLink } from "@/components/NavLink";
 import { requireProfile } from "@/lib/auth";
 import { signOut } from "@/app/actions/auth";
+import { IntroReel } from "@/components/IntroReel";
 
 export default async function ClientLayout({ children }: { children: React.ReactNode }) {
   const { profile } = await requireProfile();
   if (profile.role === "coach") redirect("/coach");
   if (profile.status === "signing_up") redirect("/welcome");
+  const first = (profile.full_name ?? "").split(" ")[0];
   return (
     <>
+      {profile.intro_seen_at === null ? <IntroReel first={first} /> : null}
       <div className="capp">
         <div className="capp-top">
           <Brand href="/app" />

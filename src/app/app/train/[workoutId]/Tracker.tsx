@@ -74,8 +74,8 @@ export function Tracker({ workoutId, name, notes, exercises, userId }: { workout
   async function upload(file: File) {
     const k = fileFor.current;
     if (!k) return;
-    if (file.size > 100 * 1024 * 1024) {
-      setError("That video is over 100 MB. Trim it to the one set and try again.");
+    if (file.size > 50 * 1024 * 1024) {
+      setError("That video is over 50 MB. Trim it to the one set and try again.");
       return;
     }
     set(k, { uploading: true });
