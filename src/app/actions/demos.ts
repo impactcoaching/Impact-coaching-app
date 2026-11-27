@@ -28,7 +28,7 @@ export async function getDemo(exerciseId: string): Promise<Demo> {
     if (data?.signedUrl) return { kind: "video", src: data.signedUrl, poster: null, stock: false, watermarked: false };
   }
 
-  if (e.wx_female || e.wx_male) {
+  if ((e.wx_female || e.wx_male) && workoutxReady()) {
     let order = [e.wx_female, e.wx_male];
     if (profile.role === "client") {
       const { data: intake } = await supabase.from("client_intake").select("sex").eq("client_id", user.id).maybeSingle();

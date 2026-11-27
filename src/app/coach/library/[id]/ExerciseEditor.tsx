@@ -34,7 +34,7 @@ export function ExerciseEditor({ exercise: e, muscles, stockReady, usedCount }: 
   const [searching, startSearch] = useTransition();
   const [, startSave] = useTransition();
   const file = useRef<HTMLInputElement>(null);
-  const source = demoSource(e);
+  const source = demoSource(e, stockReady);
 
   async function upload(f: File) {
     setMsg(null);
@@ -106,7 +106,7 @@ export function ExerciseEditor({ exercise: e, muscles, stockReady, usedCount }: 
           </div>
         ) : null}
         <p className="small muted" style={{ margin: 0 }}>
-          Your own video comes first, then the stock demo, then a link.
+          {stockReady ? "Your own video comes first, then the stock demo, then a link." : "Your own video comes first, then the link."}
         </p>
         {msg?.error ? (
           <p className="alert error" role="alert" style={{ margin: 0 }}>
@@ -121,7 +121,7 @@ export function ExerciseEditor({ exercise: e, muscles, stockReady, usedCount }: 
       </div>
 
       <div className="card">
-        <span className="eyebrow">1 · Your own video</span>
+        <span className="eyebrow">Your own video</span>
         <p className="small muted" style={{ margin: 0 }}>
           Film it upright, 10 to 60 seconds, under 100 MB. Clients can unmute it to hear you.
         </p>
@@ -157,8 +157,9 @@ export function ExerciseEditor({ exercise: e, muscles, stockReady, usedCount }: 
         />
       </div>
 
+      {stockReady || e.wx_female || e.wx_male ? (
       <div className="card">
-        <span className="eyebrow">2 · Stock demo (WorkoutX)</span>
+        <span className="eyebrow">Stock demo (WorkoutX)</span>
         {stockReady ? (
           <>
             <p className="small muted" style={{ margin: 0 }}>
@@ -195,11 +196,17 @@ export function ExerciseEditor({ exercise: e, muscles, stockReady, usedCount }: 
             ) : null}
           </>
         ) : (
-          <p className="small muted" style={{ margin: 0 }}>
-            Switches on once the WorkoutX key is added in Vercel (WORKOUTX_API_KEY).
-          </p>
+          <>
+            <p className="small muted" style={{ margin: 0 }}>
+              Stock demos are switched off, so clients don&apos;t see this one.
+            </p>
+            <button className="link small" style={{ alignSelf: "flex-start" }} onClick={() => pick(null)}>
+              Remove the stock demo
+            </button>
+          </>
         )}
       </div>
+      ) : null}
 
       <form action={action} className="card">
         <input type="hidden" name="id" value={e.id} />
@@ -224,7 +231,7 @@ export function ExerciseEditor({ exercise: e, muscles, stockReady, usedCount }: 
         </label>
         <label className="field">
           <span>
-            3 · Demo link <span className="hint">(optional, e.g. YouTube. Used if there&apos;s no video or stock demo)</span>
+            Demo link <span className="hint">(optional, e.g. YouTube. Used if there&apos;s no video of your own)</span>
           </span>
           <input className="ctl" name="demo_url" type="url" inputMode="url" defaultValue={e.demo_url ?? ""} placeholder="https://" />
         </label>

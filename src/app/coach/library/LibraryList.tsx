@@ -94,7 +94,7 @@ export function LibraryList({ exercises, muscles, stockReady }: { exercises: Lib
           ) : null
         ) : (
           <p className="small muted" style={{ margin: 0 }}>
-            Stock demos switch on once the WorkoutX key is added in Vercel (WORKOUTX_API_KEY). Your own videos and links work now.
+            Open an exercise to upload your own video or add a YouTube link.
           </p>
         )}
         {matching ? (
