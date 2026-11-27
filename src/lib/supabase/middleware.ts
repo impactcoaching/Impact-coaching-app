@@ -23,9 +23,10 @@ export async function updateSession(request: NextRequest) {
     },
   );
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // getClaims checks the sign-in token locally (no trip to the auth server when the project uses signing keys)
+  // and refreshes it when needed. Pages still verify the user with getUser before showing any data.
+  const { data } = await supabase.auth.getClaims();
+  const user = data?.claims?.sub ? data.claims : null;
 
   const path = request.nextUrl.pathname;
   const isPublic = path === "/" || PUBLIC_PATHS.some((p) => path.startsWith(p));

@@ -381,3 +381,13 @@ input[type="range"] { width: 100%; accent-color: var(--pink); }
 .ptbl table { width: 100%; border-collapse: collapse; font-size: 14px; }
 .ptbl th, .ptbl td { text-align: left; vertical-align: top; padding: 8px 10px 8px 0; border-bottom: 1px solid var(--line); }
 .ptbl th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; }
+
+/* ---------- loading skeleton ---------- */
+.skel { gap: 14px; }
+.sk { display: block; border-radius: 14px; background: linear-gradient(90deg, var(--surface) 0%, var(--surface-hi) 50%, var(--surface) 100%); background-size: 200% 100%; animation: sk 1.2s ease-in-out infinite; }
+.sk-eyebrow { width: 80px; height: 12px; }
+.sk-title { width: 60%; height: 44px; }
+.sk-card { height: 160px; border-radius: 18px; }
+.sk-card.short { height: 96px; }
+@keyframes sk { 0% { background-position: 100% 0; } 100% { background-position: -100% 0; } }
+@media (prefers-reduced-motion: reduce) { .sk { animation: none; } }
