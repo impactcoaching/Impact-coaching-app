@@ -4,12 +4,14 @@ import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { finishWorkout } from "@/app/actions/training";
 import { createClient } from "@/lib/supabase/client";
+import { DemoPlayer } from "@/components/DemoPlayer";
 import { effortText, groupName, intensifierSteps, intensifierText, repsText, setLabels, INTENSIFIERS, type PlanExercise } from "@/lib/training";
 
 export type TrackerExercise = PlanExercise & {
   id: string;
   name: string;
-  demo_url: string | null;
+  exercise_id: string;
+  has_demo: boolean;
   cues: string | null;
   last: Record<string, string>; // "work1" -> "90 × 10"
 };
@@ -21,6 +23,7 @@ const mmss = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, 
 export function Tracker({ workoutId, name, notes, exercises, userId }: { workoutId: string; name: string; notes: string | null; exercises: TrackerExercise[]; userId: string }) {
   const [rows, setRows] = useState<Record<string, Row>>({});
   const [panel, setPanel] = useState<{ ex: TrackerExercise; set: number } | null>(null);
+  const [demoFor, setDemoFor] = useState<TrackerExercise | null>(null);
   const [rest, setRest] = useState<{ end: number; total: number } | null>(null);
   const [now, setNow] = useState(Date.now());
   const [note, setNote] = useState("");
@@ -163,10 +166,10 @@ export function Tracker({ workoutId, name, notes, exercises, userId }: { workout
                   {e.rest_seconds ? ` · rest ${mmss(e.rest_seconds)}` : ""}
                 </div>
               </div>
-              {e.demo_url ? (
-                <a className="mini pink" href={e.demo_url} target="_blank" rel="noopener" data-tour="demo">
+              {e.has_demo ? (
+                <button className="mini pink" onClick={() => setDemoFor(e)} data-tour="demo">
                   ▶ Demo
-                </a>
+                </button>
               ) : null}
             </div>
             {e.notes ? <p className="small" style={{ margin: 0 }}><b>Adam:</b> {e.notes}</p> : null}
@@ -254,6 +257,8 @@ export function Tracker({ workoutId, name, notes, exercises, userId }: { workout
           </span>
         </div>
       ) : null}
+
+      {demoFor ? <DemoPlayer exerciseId={demoFor.exercise_id} name={demoFor.name} cues={demoFor.cues} onClose={() => setDemoFor(null)} /> : null}
 
       {panel && panel.ex.intensifier ? (
         <>
