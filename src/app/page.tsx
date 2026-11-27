@@ -17,8 +17,8 @@ export default async function Home() {
     <main className="narrow" style={{ minHeight: "100dvh", justifyContent: "center" }}>
       <Brand sub="COACHING" />
       <h1>
-        Train. Eat. Check in.
-        <span>With Adam.</span>
+        Make an impact.
+        <span>Real coaching. Real results.</span>
       </h1>
       <p className="muted">Your training, nutrition, check-ins and progress, all in one place.</p>
       <div className="stack" style={{ gap: 10 }}>
