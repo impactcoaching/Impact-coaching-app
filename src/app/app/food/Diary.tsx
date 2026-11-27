@@ -1,5 +1,7 @@
 "use client";
 
+import { createPortal } from "react-dom";
+
 import Link from "next/link";
 import { useMemo, useRef, useState, useTransition } from "react";
 import { deleteFoodLog, logFoods, saveDay, sendEatingOut } from "@/app/actions/nutrition";
@@ -497,7 +499,7 @@ function EatingOut({
     });
   }
 
-  return (
+  return createPortal(
     <>
       <div className="scrim" onClick={onClose} />
       <aside className="panel" role="dialog" aria-label="Eating out">
@@ -579,6 +581,7 @@ function EatingOut({
           + Log what you had
         </button>
       </aside>
-    </>
+    </>,
+    document.body,
   );
 }

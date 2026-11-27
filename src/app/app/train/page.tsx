@@ -1,3 +1,4 @@
+import { clientNote } from "@/lib/notes";
 import Link from "next/link";
 import { requireProfile } from "@/lib/auth";
 import { needsGpCheck } from "@/lib/trial-server";
@@ -51,7 +52,7 @@ export default async function TrainPage({ searchParams }: { searchParams: Promis
         </div>
       ) : (
         <div className="stack">
-          {prog.notes ? <p className="alert">{prog.notes}</p> : null}
+          {clientNote(prog.notes) ? <p className="alert">{clientNote(prog.notes)}</p> : null}
           {(workouts ?? []).map((w) => {
             const n = (w.workout_exercises as unknown as { count: number }[])[0]?.count ?? 0;
             const when = last.get(w.id);

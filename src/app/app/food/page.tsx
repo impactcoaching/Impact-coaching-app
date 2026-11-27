@@ -1,3 +1,4 @@
+import { clientNote } from "@/lib/notes";
 import Link from "next/link";
 import { requireProfile } from "@/lib/auth";
 import { currentPeakWeek } from "@/lib/peak-server";
@@ -84,7 +85,7 @@ export default async function FoodPage({ searchParams }: { searchParams: Promise
       country={profile.country}
       kj={kj}
       style={(plan?.style as Style | undefined) ?? null}
-      planNotes={plan?.notes ?? null}
+      planNotes={clientNote(plan?.notes)}
       dayTypes={dayTypes}
       current={current}
       logs={(logs ?? []) as LogRow[]}
