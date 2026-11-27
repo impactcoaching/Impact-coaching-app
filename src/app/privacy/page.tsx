@@ -121,13 +121,14 @@ export default function PrivacyPage() {
         <p>Some services the app uses never receive your personal information:</p>
         <ul>
           <li>
-            <b>Exercise demo videos</b> come from WorkoutX.
-          </li>
-          <li>
             <b>Food search</b> uses public food databases such as Open Food Facts.
           </li>
         </ul>
         <p>The app only fetches content from these services; it sends them nothing about you.</p>
+        <p>
+          <b>Exercise demo videos</b> are filmed by your coach and stored with Supabase. A few may play from YouTube, which, like any website, can see your device&apos;s
+          internet address when the video plays. We use YouTube&apos;s privacy-enhanced mode, so it doesn&apos;t set tracking cookies before you press play.
+        </p>
         <p>
           <b>Payments</b> are made by bank transfer, outside the app. The app never sees your bank details.
         </p>

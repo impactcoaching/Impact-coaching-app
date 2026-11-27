@@ -9,10 +9,10 @@ export type DemoFields = {
 
 export type DemoSource = "own" | "stock" | "link" | "none";
 
-/** Which demo a client sees. The coach's own video always wins over stock. */
-export function demoSource(e: DemoFields): DemoSource {
+/** Which demo a client sees. The coach's own video always wins over stock. Stock only counts while WorkoutX is switched on. */
+export function demoSource(e: DemoFields, stockOn = true): DemoSource {
   if (e.demo_path) return "own";
-  if (e.wx_female || e.wx_male) return "stock";
+  if (stockOn && (e.wx_female || e.wx_male)) return "stock";
   if (e.demo_url) return "link";
   return "none";
 }
