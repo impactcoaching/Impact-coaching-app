@@ -25,6 +25,9 @@ export default function JoinPage() {
         <p className="small muted" style={{ margin: 0 }}>
           Already have an account? <Link href="/login">Sign in</Link>
         </p>
+        <p className="small muted" style={{ margin: 0 }}>
+          See how we look after your data in our <Link href="/privacy">privacy policy</Link>.
+        </p>
       </div>
     </main>
   );
