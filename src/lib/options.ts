@@ -12,6 +12,7 @@ export const EQUIPMENT = {
   dip: "Dip station",
   legpress: "Leg press",
   hacksquat: "Hack squat",
+  pendulum: "Pendulum squat",
   legext: "Leg extension",
   legcurl: "Leg curl",
   hipthrust: "Hip thrust machine",

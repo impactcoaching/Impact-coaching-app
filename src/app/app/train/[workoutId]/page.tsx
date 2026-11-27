@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
 import { requireProfile } from "@/lib/auth";
 import type { PlanExercise } from "@/lib/training";
+import { demoSource, type DemoFields } from "@/lib/demos";
+import { workoutxReady } from "@/lib/workoutx";
 import { Tracker, type TrackerExercise } from "./Tracker";
 
 export default async function WorkoutPage({ params }: { params: Promise<{ workoutId: string }> }) {
@@ -10,7 +12,7 @@ export default async function WorkoutPage({ params }: { params: Promise<{ workou
   if (!w) notFound();
   const { data: plan } = await supabase
     .from("workout_exercises")
-    .select("*, exercise:exercises!workout_exercises_exercise_id_fkey(name, demo_url, cues)")
+    .select("*, exercise:exercises!workout_exercises_exercise_id_fkey(name, demo_url, demo_path, wx_female, wx_male, cues)")
     .eq("workout_id", workoutId)
     .order("position");
   const names = (plan ?? []).map((p) => (p.exercise as { name: string }).name);
@@ -33,8 +35,8 @@ export default async function WorkoutPage({ params }: { params: Promise<{ workou
   });
 
   const exercises: TrackerExercise[] = (plan ?? []).map((p) => {
-    const ex = p.exercise as { name: string; demo_url: string | null; cues: string | null };
-    return { ...(p as unknown as PlanExercise), id: p.id as string, name: ex.name, demo_url: ex.demo_url, cues: ex.cues, last: lastSets[ex.name] ?? {} };
+    const ex = p.exercise as DemoFields & { name: string; cues: string | null };
+    return { ...(p as unknown as PlanExercise), id: p.id as string, name: ex.name, has_demo: demoSource(ex, workoutxReady()) !== "none", cues: ex.cues, last: lastSets[ex.name] ?? {} };
   });
 
   return <Tracker workoutId={w.id} name={w.name} notes={w.notes} exercises={exercises} userId={user.id} />;

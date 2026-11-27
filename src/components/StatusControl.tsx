@@ -8,6 +8,7 @@ const NEXT: Record<string, { to: string; label: string; primary: boolean } | und
   pending: { to: "active", label: "Accept as a client", primary: true },
   active: { to: "paused", label: "Pause", primary: false },
   paused: { to: "active", label: "Restart", primary: true },
+  ended: { to: "active", label: "Restart coaching", primary: false },
 };
 
 function Btn({ label, primary }: { label: string; primary: boolean }) {
