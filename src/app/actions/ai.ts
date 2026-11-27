@@ -7,6 +7,9 @@ import { z } from "zod";
 import { z as z4 } from "zod/v4";
 import { requireCoach, requireProfile } from "@/lib/auth";
 import { aiEnabled, draftWithAi } from "@/lib/ai";
+import { COUNTRIES } from "@/lib/options";
+
+const countryName = (c: string | null | undefined) => (c && c !== "other" ? (COUNTRIES.find((x) => x.value === c)?.label ?? null) : null);
 
 const uuid = z.string().uuid();
 const clamp = (n: unknown, lo: number, hi: number, fallback: number | null = null) => {
@@ -20,13 +23,15 @@ type Supa = Awaited<ReturnType<typeof requireCoach>>["supabase"];
 
 /** What the AI is told about a client. No name, contact details or date of birth: just what's needed to plan. */
 async function clientBrief(supabase: Supa, clientId: string) {
-  const [{ data: intake }, { data: lastCheckin }] = await Promise.all([
+  const [{ data: intake }, { data: lastCheckin }, { data: prof }] = await Promise.all([
     supabase.from("client_intake").select("*").eq("client_id", clientId).maybeSingle(),
     supabase.from("checkins").select("weight_kg, created_at").eq("client_id", clientId).not("weight_kg", "is", null).order("created_at", { ascending: false }).limit(1).maybeSingle(),
+    supabase.from("profiles").select("country").eq("id", clientId).maybeSingle(),
   ]);
   if (!intake) return null;
   const age = intake.date_of_birth ? Math.floor((Date.now() - Date.parse(intake.date_of_birth)) / (365.25 * 86_400_000)) : null;
   const lines = [
+    `Lives in: ${countryName(prof?.country) ?? "not given"}`,
     `Sex: ${intake.sex ?? "not given"}`,
     age ? `Age: ${age}` : null,
     intake.height_cm ? `Height: ${intake.height_cm} cm` : null,
@@ -289,7 +294,7 @@ const IMAGE_TYPES = { jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png", w
 
 /** Read a menu photo and rank the dishes by how well they fit what's left of today. Estimates only. */
 export async function suggestFromMenu(input: { photo_path: string; remaining: z.input<typeof remainingInput> }): Promise<{ picks?: MenuPick[]; tip?: string; error?: string }> {
-  const { supabase, user } = await requireProfile();
+  const { supabase, user, profile } = await requireProfile();
   if (!aiEnabled()) return { error: "Menu suggestions aren't switched on yet. Send it to Adam instead." };
   const path = String(input.photo_path ?? "");
   if (!inFolder(path, user.id)) return { error: "That photo couldn't be read." };
@@ -310,6 +315,7 @@ export async function suggestFromMenu(input: { photo_path: string; remaining: z.
 
   const left = remaining.success ? remaining.data : {};
   const prompt = `This is a photo of a restaurant menu. A coaching client wants to eat out and stay on track.
+They live in: ${countryName(profile.country) ?? "not given"}.
 What's left of their targets today: ${left.kcal != null ? `${Math.round(left.kcal)} kcal, ` : ""}${left.protein_g != null ? `${Math.round(left.protein_g)} g protein, ` : ""}${left.carbs_g != null ? `${Math.round(left.carbs_g)} g carbs, ` : ""}${left.fat_g != null ? `${Math.round(left.fat_g)} g fat` : ""}${left.kcal == null ? "not known, so favour high protein, sensible portions" : ""}.
 
 Pick the 3 to 5 dishes on this menu that fit best, best first. For each: the dish name as written, one short line on why it fits, one simple thing to ask for (e.g. sauce on the side, swap chips for salad), and your best estimate of kcal, protein, carbs and fat for a normal restaurant portion.
