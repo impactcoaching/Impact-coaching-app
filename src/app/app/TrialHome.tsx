@@ -67,7 +67,7 @@ export async function TrialHome({ supabase, profile, welcome }: { supabase: Supa
       </div>
 
       <div className="card">
-        <span className="eyebrow">{next ? "Next starter workout" : "Starter workouts"}</span>
+        <span className="eyebrow">{next ? "Next workout" : "Your workouts"}</span>
         {next ? (
           <>
             <h2>{next.name}</h2>
@@ -80,7 +80,7 @@ export async function TrialHome({ supabase, profile, welcome }: { supabase: Supa
           </>
         ) : (
           <p className="muted" style={{ margin: 0 }}>
-            Adam is adding your starter workouts. They&apos;ll show in Train very soon.
+            Adam is writing your workouts around your answers and your gym. You&apos;ll see them here and in Train as soon as they&apos;re ready. Log your food in the meantime.
           </p>
         )}
       </div>

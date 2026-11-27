@@ -122,7 +122,7 @@ export async function saveIntake(_: IntakeState, form: FormData): Promise<Intake
   if (d.start === "trial") {
     const { error: placeError } = await supabase.from("profiles").update({ country: d.country, time_zone: d.time_zone ?? null }).eq("id", user.id);
     if (placeError) return { error: "Something went wrong. Please try again." };
-    // Starts the 14 days and copies Adam's starter workouts. When all trial places are taken, they join the review list instead.
+    // Starts the 14 days. Adam then writes their workouts. When all trial places are taken, they join the review list instead.
     const { data: started, error: trialError } = await supabase.rpc("start_trial");
     if (trialError) {
       console.error("start_trial", trialError);
@@ -140,7 +140,7 @@ export async function saveIntake(_: IntakeState, form: FormData): Promise<Intake
   redirect("/app?welcome=1");
 }
 
-/** A trial client whose health answers need a GP check ticks that they've had one, which unlocks the starter workouts. */
+/** A trial client whose health answers need a GP check ticks that they've had one, which unlocks their workouts. */
 export async function confirmGp(form: FormData) {
   const { supabase, user } = await requireProfile();
   if (form.get("gp") !== "on") redirect("/app/train?gp=missing");
