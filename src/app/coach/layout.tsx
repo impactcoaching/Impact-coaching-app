@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Brand } from "@/components/Brand";
 import { Icon } from "@/components/Icons";
 import { NavLink } from "@/components/NavLink";
@@ -28,6 +29,9 @@ export default async function CoachLayout({ children }: { children: React.ReactN
         </nav>
         <div className="foot stack" style={{ gap: 8 }}>
           <span className="small muted">Signed in as {profile.full_name || "Coach"}</span>
+          <Link href="/privacy" className="small muted">
+            Privacy policy
+          </Link>
           <form action={signOut}>
             <button className="link small">Sign out</button>
           </form>

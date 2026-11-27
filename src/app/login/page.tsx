@@ -33,6 +33,9 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
           <Link href="/join">New client? Join here</Link>
         </div>
       </div>
+      <p className="small muted" style={{ textAlign: "center", margin: 0 }}>
+        <Link href="/privacy">Privacy policy</Link>
+      </p>
     </main>
   );
 }

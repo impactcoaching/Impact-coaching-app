@@ -45,8 +45,11 @@ export default async function ClientHome({ searchParams }: { searchParams: Promi
           </Link>
         </div>
       )}
-      <div style={{ textAlign: "center", paddingTop: 8 }}>
+      <div className="stack small" style={{ textAlign: "center", paddingTop: 8, gap: 6, alignItems: "center" }}>
         <ReplayTour />
+        <Link href="/privacy" className="muted">
+          Privacy policy
+        </Link>
       </div>
     </>
   );
