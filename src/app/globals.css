@@ -32,6 +32,8 @@ a { color: var(--pink-hi); }
 button, input, select, textarea { font: inherit; color: inherit; }
 button { cursor: pointer; }
 :focus-visible { outline: 2px solid var(--pink); outline-offset: 2px; }
+/* After moving between pages, phones focus the first link (e.g. "All clients") and show the ring. Touch screens don't need it; VoiceOver draws its own. */
+@media (pointer: coarse) { a:focus-visible { outline: none; } }
 .num { font-variant-numeric: tabular-nums; }
 
 /* The lit stage behind everything */
