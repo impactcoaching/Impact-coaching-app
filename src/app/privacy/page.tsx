@@ -4,8 +4,7 @@ import { Brand } from "@/components/Brand";
 export const metadata = { title: "Privacy policy · Impact Coaching" };
 
 // Approved by Adam on 27 Nov 2026 (NZ), from the Claude Doc "Impact Coaching Privacy Policy".
-// Fill this in before this page goes live.
-const CONTACT_EMAIL = "privacy@example.com"; // TODO: Adam's contact email
+const CONTACT_EMAIL = "adamnugent.business@gmail.com"; // swap for hello@impactcoachingapp.com once Workspace is set up
 const UPDATED = "27 November 2026";
 
 export default function PrivacyPage() {
