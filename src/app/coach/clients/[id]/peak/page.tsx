@@ -9,8 +9,9 @@ import { PeakEditor, StartPeak } from "./PeakEditor";
 
 export default async function PeakPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const { supabase } = await requireCoach();
-  const { data: c } = await supabase.from("profiles").select("id, full_name, time_zone").eq("id", id).eq("role", "client").maybeSingle();
+  const { supabase, profile: me } = await requireCoach();
+  const self = id === me.id;
+  const { data: c } = await supabase.from("profiles").select("id, full_name, time_zone").eq("id", id).or(`role.eq.client,id.eq.${me.id}`).maybeSingle();
   if (!c) notFound();
   const first = (c.full_name ?? "").split(" ")[0] || "this client";
   const today = todayIn(c.time_zone);
@@ -31,7 +32,7 @@ export default async function PeakPage({ params }: { params: Promise<{ id: strin
         ← All clients
       </Link>
       <h1>{c.full_name || "Client"}</h1>
-      <ClientTabs id={c.id} active="peak" />
+      <ClientTabs id={c.id} active="peak" self={self} />
 
       <div className="card">
         <span className="eyebrow">Peak week{intake?.division ? ` · ${[intake.federation, intake.division].filter(Boolean).join(" ")}` : ""}</span>

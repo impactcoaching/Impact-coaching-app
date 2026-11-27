@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { requireProfile } from "@/lib/auth";
+import { requireClientView } from "@/lib/auth";
 import { posesFor } from "@/lib/checkins";
 import { hasConsent } from "@/lib/checkins-server";
 import { PhotoCompare, type Photo } from "@/components/PhotoCompare";
@@ -7,7 +7,7 @@ import { allowPhotos } from "@/app/actions/checkins";
 import { AddPhotos } from "./AddPhotos";
 
 export default async function ProgressPage() {
-  const { supabase, user } = await requireProfile();
+  const { supabase, user } = await requireClientView();
   const [{ data: rows }, { data: settings }, { data: intake }, allowed] = await Promise.all([
     supabase.from("progress_photos").select("id, pose, taken_on, path").eq("client_id", user.id).order("taken_on", { ascending: false }).limit(300),
     supabase.from("client_settings").select("poses").eq("client_id", user.id).maybeSingle(),

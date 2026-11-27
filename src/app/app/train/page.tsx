@@ -1,11 +1,11 @@
 import { clientNote } from "@/lib/notes";
 import Link from "next/link";
-import { requireProfile } from "@/lib/auth";
+import { requireClientView } from "@/lib/auth";
 import { needsGpCheck } from "@/lib/trial-server";
 import { confirmGp } from "@/app/actions/intake";
 
 export default async function TrainPage({ searchParams }: { searchParams: Promise<{ done?: string; gp?: string }> }) {
-  const { supabase, user, profile } = await requireProfile();
+  const { supabase, user, profile } = await requireClientView();
   const sp = await searchParams;
   if (await needsGpCheck(supabase, profile)) {
     return (

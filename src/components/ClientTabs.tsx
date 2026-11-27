@@ -9,10 +9,11 @@ const TABS = [
   { key: "messages", label: "Messages", href: (id: string) => `/coach/messages/${id}` },
 ];
 
-export function ClientTabs({ id, active }: { id: string; active: string }) {
+/** self: the coach's own training, which has no overview or messages. */
+export function ClientTabs({ id, active, self }: { id: string; active: string; self?: boolean }) {
   return (
     <nav className="ptabs" aria-label="Client sections">
-      {TABS.map((t) => (
+      {TABS.filter((t) => !self || (t.key !== "overview" && t.key !== "messages")).map((t) => (
         <Link key={t.key} href={t.href(id)} aria-current={active === t.key ? "page" : undefined}>
           {t.label}
         </Link>

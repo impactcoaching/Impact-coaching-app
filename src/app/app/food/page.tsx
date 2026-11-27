@@ -1,6 +1,6 @@
 import { clientNote } from "@/lib/notes";
 import Link from "next/link";
-import { requireProfile } from "@/lib/auth";
+import { requireClientView } from "@/lib/auth";
 import { currentPeakWeek } from "@/lib/peak-server";
 import { aiEnabled } from "@/lib/ai";
 import { peakDate, peakLabel } from "@/lib/peak";
@@ -19,7 +19,7 @@ type DayRow = Omit<DayType, "meals"> & {
 };
 
 export default async function FoodPage({ searchParams }: { searchParams: Promise<{ d?: string }> }) {
-  const { supabase, user, profile } = await requireProfile();
+  const { supabase, user, profile } = await requireClientView();
   const sp = await searchParams;
   const today = todayIn(profile.time_zone);
   const date = isDate(sp.d) ? sp.d : today;

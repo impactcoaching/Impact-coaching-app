@@ -437,3 +437,17 @@ input[type="range"] { width: 100%; accent-color: var(--pink); }
 .stats3 b { font-family: var(--display); font-weight: 800; font-size: 30px; line-height: 1; }
 .offer strong { color: var(--fg); }
 .avatar { width: 40px; height: 40px; flex: none; border-radius: 50%; background: linear-gradient(135deg, #ff2e88, #7a1645); display: flex; align-items: center; justify-content: center; font-weight: 700; }
+
+/* Coach looking at the client app: "my training" or "view as client" */
+.btn.small { padding: 7px 12px; font-size: 13px; border-radius: 10px; }
+.modebar { border: 1px solid rgba(255, 46, 136, 0.45); background: rgba(46, 10, 28, 0.88); border-radius: 12px; padding: 10px 12px; font-size: 13.5px; position: sticky; top: 8px; z-index: 30; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+.modebar.view { border-color: rgba(255, 200, 97, 0.55); background: rgba(40, 30, 10, 0.82); }
+.readonly { display: contents; border: 0; padding: 0; margin: 0; min-width: 0; }
+.readonly :disabled { opacity: 1; cursor: default; }
+.modeswitch { display: flex; border: 1px solid var(--line); border-radius: 12px; padding: 3px; gap: 3px; background: var(--surface); }
+.modeswitch > * { flex: 1; }
+.modeswitch button, .modeswitch span { width: 100%; display: block; text-align: center; padding: 7px 8px; border-radius: 9px; font-size: 13px; font-weight: 700; border: 0; background: none; color: var(--muted); cursor: pointer; font-family: inherit; }
+.modeswitch span { background: linear-gradient(90deg, #ff2e88, #ff5ca3); color: #fff; cursor: default; }
+.coach-mtop { flex-wrap: wrap; }
+.coach-mtop .modeswitch { flex-basis: 100%; margin-top: 12px; }
+.modeswitch button, .modeswitch span { white-space: nowrap; }

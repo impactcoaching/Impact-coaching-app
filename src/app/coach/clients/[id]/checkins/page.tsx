@@ -54,8 +54,9 @@ function AnswerRows({ qs, now, before }: { qs: readonly Question[]; now: Answers
 export default async function ClientCheckins({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ c?: string }> }) {
   const { id } = await params;
   const sp = await searchParams;
-  const { supabase } = await requireCoach();
-  const { data: c } = await supabase.from("profiles").select("id, full_name, time_zone").eq("id", id).eq("role", "client").maybeSingle();
+  const { supabase, profile: me } = await requireCoach();
+  const self = id === me.id;
+  const { data: c } = await supabase.from("profiles").select("id, full_name, time_zone").eq("id", id).or(`role.eq.client,id.eq.${me.id}`).maybeSingle();
   if (!c) notFound();
   const first = (c.full_name ?? "").split(" ")[0] || "this client";
   const tz = c.time_zone || "Europe/London";
@@ -104,7 +105,7 @@ export default async function ClientCheckins({ params, searchParams }: { params:
         ← All check-ins
       </Link>
       <h1>{c.full_name || "Client"}</h1>
-      <ClientTabs id={c.id} active="checkins" />
+      <ClientTabs id={c.id} active="checkins" self={self} />
 
       {!cur ? (
         <div className="card">
