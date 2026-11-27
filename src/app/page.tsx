@@ -26,7 +26,10 @@ export default async function Home() {
           Sign in
         </Link>
         <Link className="btn block" href="/join">
-          I&apos;m a new client
+          I&apos;m new here
+        </Link>
+        <Link className="small" href="/coaching" style={{ textAlign: "center", padding: "10px 0" }}>
+          Coaching options and the free trial ›
         </Link>
       </div>
     </main>

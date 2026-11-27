@@ -18,7 +18,7 @@ import {
 
 const STEPS = ["About you", "Your goal", "Training", "Where you train", "Food", "Health", "Your consent"];
 
-export function IntakeForm({ firstName }: { firstName: string }) {
+export function IntakeForm({ firstName, trial = false }: { firstName: string; trial?: boolean }) {
   const [state, action, pending] = useActionState(saveIntake, undefined);
   const [step, setStep] = useState(0);
   const [goal, setGoal] = useState("");
@@ -72,6 +72,7 @@ export function IntakeForm({ firstName }: { firstName: string }) {
 
       <form ref={formRef} action={action} className="stack" noValidate={false}>
         <input type="hidden" name="time_zone" value={tz} />
+        <input type="hidden" name="start" value={trial ? "trial" : "apply"} />
 
         {/* 1. About you */}
         <section className="card" data-step="0" hidden={step !== 0}>
@@ -367,6 +368,19 @@ export function IntakeForm({ firstName }: { firstName: string }) {
               Adam can ask me before using any of my photos or results in his marketing. <span className="muted">Optional. Nothing is ever used without asking first.</span>
             </span>
           </label>
+          {trial ? (
+            <label className="check">
+              <input type="checkbox" name="consent_contact" />
+              <span>
+                Adam can get in touch after my trial with offers and news. <span className="muted">Optional. Leave it unticked and you won&apos;t hear from us once your trial ends.</span>
+              </span>
+            </label>
+          ) : null}
+          {trial ? (
+            <p className="muted small" style={{ margin: 0 }}>
+              Your trial lasts 14 days. If you don&apos;t join after it, your account and everything in it is deleted 30 days after the trial ends.
+            </p>
+          ) : null}
           <p className="muted small" style={{ margin: 0 }}>
             You can change any of these later in your settings.
           </p>
@@ -392,7 +406,7 @@ export function IntakeForm({ firstName }: { firstName: string }) {
             </button>
           ) : (
             <button type="submit" className="btn primary" disabled={pending}>
-              {pending ? "Saving…" : "Send to Adam"}
+              {pending ? "Saving…" : trial ? "Start my free trial" : "Send to Adam"}
             </button>
           )}
         </div>

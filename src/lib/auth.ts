@@ -6,7 +6,9 @@ export type Profile = {
   id: string;
   role: "coach" | "client";
   full_name: string | null;
-  status: "signing_up" | "pending" | "active" | "paused" | "ended";
+  status: "signing_up" | "pending" | "trial" | "active" | "paused" | "ended";
+  trial_started_at?: string | null;
+  trial_ends_at?: string | null;
   country: string | null;
   time_zone: string | null;
   intro_seen_at?: string | null;

@@ -60,6 +60,8 @@ export async function submitCheckin(input: z.input<typeof checkinInput>): Promis
     })
     .select("id")
     .single();
+  if (error?.message?.includes("one check-in")) return { error: "Your free trial includes one check-in, and you've already sent it. With coaching you check in every week." };
+  if (error?.code === "42501") return { error: "Your free trial has finished, so new check-ins can't be added." };
   if (error || !row) return { error: "Couldn't send your check-in. Please try again." };
 
   if (d.photos.length) {

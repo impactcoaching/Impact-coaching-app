@@ -9,14 +9,19 @@ export function AuthForm({
   action,
   fields,
   submit,
+  hidden,
 }: {
   action: (state: FormState, form: FormData) => Promise<FormState>;
   fields: Field[];
   submit: string;
+  hidden?: Record<string, string>;
 }) {
   const [state, formAction, pending] = useActionState(action, undefined);
   return (
     <form action={formAction} className="stack">
+      {Object.entries(hidden ?? {}).map(([k, v]) => (
+        <input key={k} type="hidden" name={k} value={v} />
+      ))}
       {fields.map((f) => (
         <label key={f.name} className="field">
           {f.label}

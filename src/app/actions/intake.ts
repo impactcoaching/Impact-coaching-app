@@ -53,6 +53,8 @@ const schema = z.object({
   consent_health: z.literal("on", { message: "Adam needs your consent to use your health details for coaching" }),
   consent_photos: z.enum(["on"]).optional(),
   consent_marketing: z.enum(["on"]).optional(),
+  consent_contact: z.enum(["on"]).optional(),
+  start: z.enum(["trial", "apply"]).default("apply"),
 });
 
 export async function saveIntake(_: IntakeState, form: FormData): Promise<IntakeState> {
@@ -112,9 +114,22 @@ export async function saveIntake(_: IntakeState, form: FormData): Promise<Intake
     { kind: "progress_photos", granted: d.consent_photos === "on" },
     { kind: "marketing_photos", granted: d.consent_marketing === "on" },
     { kind: "cycle_data", granted: d.sex === "female" && d.cycle_tracking === "on" },
+    ...(d.start === "trial" ? [{ kind: "marketing_contact", granted: d.consent_contact === "on" }] : []),
   ].map((c) => ({ ...c, client_id: user.id, policy_version: POLICY_VERSION }));
   const { error: consentError } = await supabase.from("consents").insert(consents);
   if (consentError) return { error: "Something went wrong saving your consent. Please try again." };
+
+  if (d.start === "trial") {
+    const { error: placeError } = await supabase.from("profiles").update({ country: d.country, time_zone: d.time_zone ?? null }).eq("id", user.id);
+    if (placeError) return { error: "Something went wrong. Please try again." };
+    // Starts the 14 days and copies Adam's starter workouts. When all trial places are taken, they join the review list instead.
+    const { data: started, error: trialError } = await supabase.rpc("start_trial");
+    if (trialError) {
+      console.error("start_trial", trialError);
+      return { error: "Something went wrong starting your trial. Please try again." };
+    }
+    redirect(started === "full" ? "/app?welcome=full" : "/app?welcome=trial");
+  }
 
   const { error: profileError } = await supabase
     .from("profiles")
@@ -123,4 +138,12 @@ export async function saveIntake(_: IntakeState, form: FormData): Promise<Intake
   if (profileError) return { error: "Something went wrong. Please try again." };
 
   redirect("/app?welcome=1");
+}
+
+/** A trial client whose health answers need a GP check ticks that they've had one, which unlocks the starter workouts. */
+export async function confirmGp(form: FormData) {
+  const { supabase, user } = await requireProfile();
+  if (form.get("gp") !== "on") redirect("/app/train?gp=missing");
+  await supabase.from("client_intake").update({ gp_confirmed_at: new Date().toISOString() }).eq("client_id", user.id);
+  redirect("/app/train");
 }

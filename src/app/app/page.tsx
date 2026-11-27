@@ -4,10 +4,12 @@ import { requireProfile } from "@/lib/auth";
 import { todayIn } from "@/lib/nutrition";
 import { daysUntil, shortDate } from "@/lib/peak";
 import { currentPeakWeek } from "@/lib/peak-server";
+import { TrialHome } from "./TrialHome";
 
 export default async function ClientHome({ searchParams }: { searchParams: Promise<{ welcome?: string }> }) {
   const { supabase, user, profile } = await requireProfile();
   const sp = await searchParams;
+  if (profile.status === "trial") return <TrialHome supabase={supabase} profile={profile} welcome={sp.welcome} />;
   const today = todayIn(profile.time_zone);
   const peak = profile.status === "active" ? await currentPeakWeek(supabase, user.id, today) : null;
   const until = peak ? daysUntil(peak.week.show_date, today) : null;
@@ -19,7 +21,11 @@ export default async function ClientHome({ searchParams }: { searchParams: Promi
         Hi {first}
         <span>{profile.status === "active" ? "let's go" : "nearly there"}</span>
       </h1>
-      {sp.welcome ? <p className="alert ok">Thanks! Your answers are with Adam.</p> : null}
+      {sp.welcome === "full" ? (
+        <p className="alert ok">Thanks! The free trial places are all taken right now, so your answers have gone straight to Adam. He&apos;ll be in touch about starting.</p>
+      ) : sp.welcome ? (
+        <p className="alert ok">Thanks! Your answers are with Adam.</p>
+      ) : null}
       {peak && until != null ? (
         <Link href="/app/peak" className="card peakcard">
           <span className="eyebrow">Peak week · show {shortDate(peak.week.show_date)}</span>

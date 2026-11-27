@@ -1,4 +1,5 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
+import { needsGpCheck } from "@/lib/trial-server";
 import { requireProfile } from "@/lib/auth";
 import type { PlanExercise } from "@/lib/training";
 import { demoSource, type DemoFields } from "@/lib/demos";
@@ -7,7 +8,8 @@ import { Tracker, type TrackerExercise } from "./Tracker";
 
 export default async function WorkoutPage({ params }: { params: Promise<{ workoutId: string }> }) {
   const { workoutId } = await params;
-  const { supabase, user } = await requireProfile();
+  const { supabase, user, profile } = await requireProfile();
+  if (await needsGpCheck(supabase, profile)) redirect("/app/train");
   const { data: w } = await supabase.from("workouts").select("id, name, notes").eq("id", workoutId).maybeSingle();
   if (!w) notFound();
   const { data: plan } = await supabase

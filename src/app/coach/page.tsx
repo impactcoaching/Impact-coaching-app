@@ -11,6 +11,7 @@ export default async function CoachDashboard() {
   const list = clients ?? [];
   const pending = list.filter((c) => c.status === "pending");
   const active = list.filter((c) => c.status === "active");
+  const trials = list.filter((c) => c.status === "trial");
   const first = (profile.full_name ?? "").split(" ")[0] || "Coach";
   return (
     <>
@@ -33,6 +34,10 @@ export default async function CoachDashboard() {
           <span className="eyebrow">New sign-ups to review</span>
           <h2 className="num" style={{ fontSize: 44 }}>{pending.length}</h2>
         </div>
+        <Link href="/coach/trials" className="card" style={{ textDecoration: "none", color: "var(--fg)" }}>
+          <span className="eyebrow">Free trials</span>
+          <h2 className="num" style={{ fontSize: 44 }}>{trials.length}</h2>
+        </Link>
         <Link href="/coach/checkins" className="card" style={{ textDecoration: "none", color: "var(--fg)" }}>
           <span className="eyebrow">Check-ins to reply to</span>
           <h2 className="num" style={{ fontSize: 44 }}>{toReply ?? 0}</h2>

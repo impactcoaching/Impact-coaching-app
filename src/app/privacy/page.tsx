@@ -166,6 +166,9 @@ export default function PrivacyPage() {
             <b>When you leave:</b> we keep your coaching data for 12 months in case you come back, then delete it. You can ask us to delete it sooner.
           </li>
           <li>
+            <b>Free trial, if you don&apos;t join:</b> your trial lasts 14 days. After that your account is read-only, and 30 days after the trial ends we delete your account and everything in it, including your health answers, logs and photos. You can ask us to delete it sooner. We only contact you after your trial if you ticked the box to say we can.
+          </li>
+          <li>
             <b>Progress and posing photos:</b> deleted with the rest of your coaching data, or straight away if you ask.
           </li>
           <li>

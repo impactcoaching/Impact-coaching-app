@@ -6,6 +6,7 @@ import { setClientStatus, type StatusResult } from "@/app/actions/coach";
 
 const NEXT: Record<string, { to: string; label: string; primary: boolean } | undefined> = {
   pending: { to: "active", label: "Accept as a client", primary: true },
+  trial: { to: "active", label: "Start coaching", primary: true },
   active: { to: "paused", label: "Pause", primary: false },
   paused: { to: "active", label: "Restart", primary: true },
   ended: { to: "active", label: "Restart coaching", primary: false },

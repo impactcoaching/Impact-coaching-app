@@ -8,19 +8,29 @@ import { requireCoach, requireProfile } from "@/lib/auth";
 
 const uuid = z.string().uuid();
 
+/** The coach's own account holds the starter workouts for free trials, edited at /coach/starter. */
+function trainingPath(clientId: string, coachId: string) {
+  return clientId === coachId ? "/coach/starter" : `/coach/clients/${clientId}/training`;
+}
+
 // ---------- coach ----------
 
 export async function createProgramme(form: FormData) {
-  const { supabase } = await requireCoach();
+  const { supabase, user } = await requireCoach();
   const clientId = uuid.parse(form.get("client_id"));
-  const { data: prog, error } = await supabase.from("programmes").insert({ client_id: clientId, name: "Training programme" }).select("id").single();
+  const starter = clientId === user.id;
+  const { data: prog, error } = await supabase
+    .from("programmes")
+    .insert({ client_id: clientId, name: starter ? "Starter workouts" : "Training programme", is_starter: starter })
+    .select("id")
+    .single();
   if (error || !prog) throw new Error("Couldn't create the programme");
-  await supabase.from("workouts").insert({ programme_id: prog.id, client_id: clientId, name: "Day 1", position: 0 });
-  revalidatePath(`/coach/clients/${clientId}/training`);
+  await supabase.from("workouts").insert({ programme_id: prog.id, client_id: clientId, name: starter ? "Full body A" : "Day 1", position: 0 });
+  revalidatePath(trainingPath(clientId, user.id));
 }
 
 export async function addWorkout(form: FormData) {
-  const { supabase } = await requireCoach();
+  const { supabase, user } = await requireCoach();
   const programmeId = uuid.parse(form.get("programme_id"));
   const { data: prog } = await supabase.from("programmes").select("client_id").eq("id", programmeId).single();
   if (!prog) return;
@@ -30,23 +40,23 @@ export async function addWorkout(form: FormData) {
     .insert({ programme_id: programmeId, client_id: prog.client_id, name: `Day ${(count ?? 0) + 1}`, position: count ?? 0 })
     .select("id")
     .single();
-  redirect(`/coach/clients/${prog.client_id}/training?w=${w?.id ?? ""}`);
+  redirect(`${trainingPath(prog.client_id, user.id)}?w=${w?.id ?? ""}`);
 }
 
 export async function deleteWorkout(form: FormData) {
-  const { supabase } = await requireCoach();
+  const { supabase, user } = await requireCoach();
   const id = uuid.parse(form.get("workout_id"));
   const { data: w } = await supabase.from("workouts").select("client_id").eq("id", id).single();
   await supabase.from("workouts").delete().eq("id", id);
-  if (w) redirect(`/coach/clients/${w.client_id}/training`);
+  if (w) redirect(trainingPath(w.client_id, user.id));
 }
 
 export async function setProgrammeLive(form: FormData) {
-  const { supabase } = await requireCoach();
+  const { supabase, user } = await requireCoach();
   const id = uuid.parse(form.get("programme_id"));
   const live = form.get("live") === "true";
   const { data } = await supabase.from("programmes").update({ is_live: live }).eq("id", id).select("client_id").single();
-  if (data) revalidatePath(`/coach/clients/${data.client_id}/training`);
+  if (data) revalidatePath(trainingPath(data.client_id, user.id));
 }
 
 const intensifier = z
@@ -80,7 +90,7 @@ const planExercise = z.object({
 const saveSchema = z.object({ workoutId: uuid, name: z.string().trim().min(1).max(60), exercises: z.array(planExercise).max(40) });
 
 export async function saveWorkout(input: z.input<typeof saveSchema>): Promise<{ error?: string }> {
-  const { supabase } = await requireCoach();
+  const { supabase, user } = await requireCoach();
   const parsed = saveSchema.safeParse(input);
   if (!parsed.success) return { error: "Some of the numbers aren't valid. Check the highlighted exercise." };
   const { workoutId, name, exercises } = parsed.data;
@@ -102,7 +112,7 @@ export async function saveWorkout(input: z.input<typeof saveSchema>): Promise<{ 
     const { error } = await supabase.from("workout_exercises").insert(rows);
     if (error) return { error: "Couldn't save. Please try again." };
   }
-  revalidatePath(`/coach/clients/${w.client_id}/training`);
+  revalidatePath(trainingPath(w.client_id, user.id));
   return {};
 }
 
@@ -147,6 +157,7 @@ export async function finishWorkout(input: z.input<typeof finishSchema>): Promis
     .insert({ client_id: user.id, workout_id: workoutId, workout_name: w.name, started_at: startedAt, finished_at: new Date().toISOString(), client_note: note })
     .select("id")
     .single();
+  if (error?.code === "42501") return { error: "Your free trial has finished, so new workouts can't be saved. See coaching options on your home screen." };
   if (error || !log) return { error: "Couldn't save your workout. Please try again." };
   if (sets.length) {
     const { error: setError } = await supabase.from("set_logs").insert(sets.map((s) => ({ ...s, log_id: log.id, client_id: user.id })));
