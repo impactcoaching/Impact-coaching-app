@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
@@ -11,8 +12,8 @@ export type Profile = {
   intro_seen_at?: string | null;
 };
 
-/** The signed-in person and their profile, or a redirect to sign-in. */
-export async function requireProfile() {
+/** The signed-in person and their profile, or a redirect to sign-in. Shared by the layout and page in one request. */
+export const requireProfile = cache(async function requireProfile() {
   const supabase = await createClient();
   const {
     data: { user },
@@ -23,7 +24,7 @@ export async function requireProfile() {
   // Send them to a page that explains, rather than looping back to sign-in.
   if (!profile) redirect("/login?error=profile");
   return { supabase, user, profile };
-}
+});
 
 export async function requireCoach() {
   const ctx = await requireProfile();
