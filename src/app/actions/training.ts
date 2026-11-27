@@ -54,13 +54,19 @@ export async function setProgrammeLive(form: FormData) {
 }
 
 /** Edit the programme's name and the note the client sees at the top of Train. */
-export async function updateProgramme(form: FormData) {
+export async function updateProgramme(_prev: { ok?: boolean; error?: string }, form: FormData): Promise<{ ok?: boolean; error?: string }> {
   const { supabase } = await requireCoach();
-  const id = uuid.parse(form.get("programme_id"));
+  const id = uuid.safeParse(form.get("programme_id"));
+  if (!id.success) return { error: "Something went wrong. Please refresh and try again." };
   const name = String(form.get("name") ?? "").trim().slice(0, 80) || "Training programme";
   const notes = String(form.get("notes") ?? "").trim().slice(0, 2000) || null;
-  const { data } = await supabase.from("programmes").update({ name, notes }).eq("id", id).select("client_id").single();
-  if (data) revalidatePath(trainingPath(data.client_id));
+  const { data, error } = await supabase.from("programmes").update({ name, notes }).eq("id", id.data).select("client_id").single();
+  if (error || !data) {
+    console.error("updateProgramme", error);
+    return { error: "Couldn't save. Please refresh and try again." };
+  }
+  revalidatePath(trainingPath(data.client_id));
+  return { ok: true };
 }
 
 const intensifier = z
