@@ -3,6 +3,7 @@ import { needsGpCheck } from "@/lib/trial-server";
 import { requireProfile } from "@/lib/auth";
 import type { PlanExercise } from "@/lib/training";
 import { demoSource, type DemoFields } from "@/lib/demos";
+import { workoutxReady } from "@/lib/workoutx";
 import { Tracker, type TrackerExercise } from "./Tracker";
 
 export default async function WorkoutPage({ params }: { params: Promise<{ workoutId: string }> }) {
@@ -37,7 +38,7 @@ export default async function WorkoutPage({ params }: { params: Promise<{ workou
 
   const exercises: TrackerExercise[] = (plan ?? []).map((p) => {
     const ex = p.exercise as DemoFields & { name: string; cues: string | null };
-    return { ...(p as unknown as PlanExercise), id: p.id as string, name: ex.name, has_demo: demoSource(ex) !== "none", cues: ex.cues, last: lastSets[ex.name] ?? {} };
+    return { ...(p as unknown as PlanExercise), id: p.id as string, name: ex.name, has_demo: demoSource(ex, workoutxReady()) !== "none", cues: ex.cues, last: lastSets[ex.name] ?? {} };
   });
 
   return <Tracker workoutId={w.id} name={w.name} notes={w.notes} exercises={exercises} userId={user.id} />;
