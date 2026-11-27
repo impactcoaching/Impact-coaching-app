@@ -4,9 +4,8 @@ import { Brand } from "@/components/Brand";
 export const metadata = { title: "Privacy policy · Impact Coaching" };
 
 // Approved by Adam on 27 Nov 2026 (NZ), from the Claude Doc "Impact Coaching Privacy Policy".
-// Fill these two in before this page goes live.
+// Fill this in before this page goes live.
 const CONTACT_EMAIL = "privacy@example.com"; // TODO: Adam's contact email
-const PAYMENTS = "our payment provider"; // TODO: e.g. Stripe
 const UPDATED = "27 November 2026";
 
 export default function PrivacyPage() {
@@ -131,7 +130,7 @@ export default function PrivacyPage() {
         </ul>
         <p>The app only fetches content from these services; it sends them nothing about you.</p>
         <p>
-          <b>Payments</b> are handled outside the app by {PAYMENTS}, under their own privacy policy.
+          <b>Payments</b> are made by bank transfer, outside the app. The app never sees your bank details.
         </p>
         <p>
           <b>Stage look try-on:</b> if this ever uses an outside AI service, we will ask for your permission before any photo is sent, and name the service when we ask. Stage wear
