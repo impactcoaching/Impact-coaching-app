@@ -38,5 +38,6 @@ export async function requireCoach() {
 export function homeFor(profile: Profile) {
   if (profile.role === "coach") return "/coach";
   if (profile.status === "signing_up") return "/welcome";
+  if (profile.status === "ended") return "/ended";
   return "/app";
 }
