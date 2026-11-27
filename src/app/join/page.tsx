@@ -19,7 +19,7 @@ export default async function JoinPage({ searchParams }: { searchParams: Promise
         </h1>
         <Link href="/join?start=trial" className="card door door-main">
           <h2>Try it free for {TRIAL_DAYS} days</h2>
-          <span className="muted">Start straight away with starter workouts, food logging and a check-in reply from Adam.</span>
+          <span className="muted">Start straight away with food logging, workouts written for you by Adam, and a check-in reply from him.</span>
           <span className="door-go">Start my free trial ›</span>
         </Link>
         <Link href="/join?start=apply" className="card door">
@@ -53,7 +53,7 @@ export default async function JoinPage({ searchParams }: { searchParams: Promise
       </h1>
       <p className="muted">
         {trial
-          ? "Create your account, then answer a few questions so your starter workouts and check-in fit you. It takes about 10 minutes. No payment details needed."
+          ? "Create your account, then answer a few questions so Adam can write your trial workouts around you. It takes about 10 minutes. No payment details needed."
           : "Create your account, then answer a few questions so Adam can build your plan around you. It takes about 10 minutes."}
       </p>
       <div className="card">

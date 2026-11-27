@@ -4,7 +4,7 @@ import { requireCoach } from "@/lib/auth";
 export default async function CoachDashboard() {
   const { supabase, profile, user } = await requireCoach();
   const [{ data: clients }, { count: toReply }, { count: unread }] = await Promise.all([
-    supabase.from("profiles").select("id, full_name, status, created_at").eq("role", "client").order("created_at", { ascending: false }),
+    supabase.from("profiles").select("id, full_name, status, created_at, programmes(is_live)").eq("role", "client").order("created_at", { ascending: false }),
     supabase.from("checkins").select("id", { count: "exact", head: true }).is("replied_at", null),
     supabase.from("messages").select("id", { count: "exact", head: true }).is("read_at", null).neq("sender_id", user.id),
   ]);
@@ -12,6 +12,7 @@ export default async function CoachDashboard() {
   const pending = list.filter((c) => c.status === "pending");
   const active = list.filter((c) => c.status === "active");
   const trials = list.filter((c) => c.status === "trial");
+  const needWorkouts = trials.filter((c) => !(c.programmes as { is_live: boolean }[] | null)?.some((p) => p.is_live));
   const first = (profile.full_name ?? "").split(" ")[0] || "Coach";
   return (
     <>
@@ -47,6 +48,17 @@ export default async function CoachDashboard() {
           <h2 className="num" style={{ fontSize: 44 }}>{unread ?? 0}</h2>
         </Link>
       </div>
+      {needWorkouts.length ? (
+        <div className="card">
+          <h2>New trials: write their workouts</h2>
+          {needWorkouts.map((c) => (
+            <Link key={c.id} href={`/coach/clients/${c.id}/training`} className="row" style={{ justifyContent: "space-between", textDecoration: "none", color: "var(--fg)" }}>
+              <b>{c.full_name || "New trial"}</b>
+              <span className="chip pink">Write workouts</span>
+            </Link>
+          ))}
+        </div>
+      ) : null}
       {pending.length ? (
         <div className="card">
           <h2>New sign-ups</h2>

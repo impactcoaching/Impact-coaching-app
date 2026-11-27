@@ -16,7 +16,7 @@ export default async function TrainPage({ searchParams }: { searchParams: Promis
         <form action={confirmGp} className="card">
           <h2>Check with your GP first</h2>
           <p className="muted" style={{ margin: 0 }}>
-            You answered yes to one of the health questions, so please check with your GP that exercise is OK for you before you start. Your starter workouts unlock once you&apos;ve ticked the box. Food logging and messages work as normal in the meantime.
+            You answered yes to one of the health questions, so please check with your GP that exercise is OK for you before you start. Your workouts unlock once you&apos;ve ticked the box. Food logging and messages work as normal in the meantime.
           </p>
           {sp.gp ? <p className="alert error" role="alert">Please tick the box first.</p> : null}
           <label className="check">
@@ -46,7 +46,7 @@ export default async function TrainPage({ searchParams }: { searchParams: Promis
       {!prog ? (
         <div className="card">
           <p className="muted" style={{ margin: 0 }}>
-            Adam is building your programme. It&apos;ll show here as soon as it&apos;s ready.
+            {profile.status === "trial" ? "Adam is writing your trial workouts around your answers and your gym. They'll show here as soon as they're ready." : "Adam is building your programme. It'll show here as soon as it's ready."}
           </p>
         </div>
       ) : (
