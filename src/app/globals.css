@@ -392,6 +392,11 @@ input[type="range"] { width: 100%; accent-color: var(--pink); }
 @keyframes sk { 0% { background-position: 100% 0; } 100% { background-position: -100% 0; } }
 @media (prefers-reduced-motion: reduce) { .sk { animation: none; } }
 
+/* Manage client: end coaching and permanent delete */
+.btn.danger { border-color: rgba(255, 92, 92, 0.6); color: #ff8a8a; background: rgba(255, 92, 92, 0.08); }
+.danger-zone { border-top: 1px solid var(--line); padding-top: 12px; }
+.danger-zone summary { cursor: pointer; color: #ff8a8a; font-weight: 600; font-size: 14px; }
+.ended-list summary { cursor: pointer; color: var(--muted); font-size: 14px; padding: 4px 0; }
 /* ---------- exercise demos ---------- */
 .demo-frame { position: relative; width: 100%; aspect-ratio: 5 / 6; border-radius: 16px; overflow: hidden; background: #000; border: 1px solid var(--line);
   display: flex; align-items: center; justify-content: center; text-align: center; padding: 0; }

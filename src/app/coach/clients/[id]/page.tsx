@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { requireCoach } from "@/lib/auth";
 import { ClientTabs } from "@/components/ClientTabs";
 import { StatusControl } from "@/components/StatusControl";
+import { ManageClient } from "@/components/ManageClient";
 import { COUNTRIES, EQUIPMENT, EXPERIENCE, GOALS, NUTRITION_STYLES, SCREENING, type EquipmentKey } from "@/lib/options";
 
 const label = <T extends { value: string; label: string }>(list: readonly T[], v: string | null) => list.find((x) => x.value === v)?.label ?? v ?? "–";
@@ -173,6 +174,7 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
           </section>
         </>
       )}
+      <ManageClient key={c.status} id={c.id} name={c.full_name ?? ""} status={c.status} />
     </>
   );
 }
