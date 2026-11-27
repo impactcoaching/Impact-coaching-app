@@ -397,3 +397,15 @@ input[type="range"] { width: 100%; accent-color: var(--pink); }
 .danger-zone { border-top: 1px solid var(--line); padding-top: 12px; }
 .danger-zone summary { cursor: pointer; color: #ff8a8a; font-weight: 600; font-size: 14px; }
 .ended-list summary { cursor: pointer; color: var(--muted); font-size: 14px; padding: 4px 0; }
+/* ---------- exercise demos ---------- */
+.demo-frame { position: relative; width: 100%; aspect-ratio: 5 / 6; border-radius: 16px; overflow: hidden; background: #000; border: 1px solid var(--line);
+  display: flex; align-items: center; justify-content: center; text-align: center; padding: 0; }
+.demo-frame > p, .demo-frame > a { margin: 16px; }
+.demo-frame video, .demo-frame iframe { width: 100%; height: 100%; object-fit: contain; border: 0; display: block; background: #000; }
+.lib-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px;
+  background: rgba(0,0,0,.3); color: var(--fg); text-decoration: none; }
+.lib-row small { color: var(--muted); display: block; font-size: 12px; }
+.wx-pick { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
+.wx-pick button { display: flex; flex-direction: column; gap: 6px; text-align: left; border: 1px solid var(--line); background: rgba(0,0,0,.3); border-radius: 12px; padding: 8px; color: var(--fg); font-size: 12.5px; }
+.wx-pick button[aria-pressed="true"] { border-color: var(--pink); box-shadow: 0 0 0 3px var(--pink-soft); }
+.wx-pick img { width: 100%; aspect-ratio: 5 / 6; object-fit: cover; border-radius: 8px; background: #000; }
