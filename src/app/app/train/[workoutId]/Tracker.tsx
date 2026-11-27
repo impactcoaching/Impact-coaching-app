@@ -1,5 +1,7 @@
 "use client";
 
+import { createPortal } from "react-dom";
+
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { finishWorkout } from "@/app/actions/training";
@@ -260,7 +262,7 @@ export function Tracker({ workoutId, name, notes, exercises, userId }: { workout
 
       {demoFor ? <DemoPlayer exerciseId={demoFor.exercise_id} name={demoFor.name} cues={demoFor.cues} onClose={() => setDemoFor(null)} /> : null}
 
-      {panel && panel.ex.intensifier ? (
+      {panel && panel.ex.intensifier ? createPortal(
         <>
           <div className="scrim" onClick={() => setPanel(null)} />
           <aside className="panel" role="dialog" aria-label="Intensifier">
@@ -288,7 +290,8 @@ export function Tracker({ workoutId, name, notes, exercises, userId }: { workout
               {row(key(panel.ex.id, "work", panel.set)).int ? "Mark as not done" : "Done it"}
             </button>
           </aside>
-        </>
+        </>,
+        document.body,
       ) : null}
     </>
   );

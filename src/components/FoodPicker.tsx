@@ -1,5 +1,7 @@
 "use client";
 
+import { createPortal } from "react-dom";
+
 import { useMemo, useState, useTransition } from "react";
 import { saveFood, searchSupermarket } from "@/app/actions/nutrition";
 import { energyText, forGrams, type Food, type FoundFood } from "@/lib/nutrition";
@@ -98,7 +100,7 @@ export function FoodPicker({
 
   const preview = chosen && num(grams) ? forGrams(chosen, num(grams)!) : null;
 
-  return (
+  return createPortal(
     <>
       <div className="scrim" onClick={onClose} />
       <aside className="panel" role="dialog" aria-label={title}>
@@ -214,7 +216,8 @@ export function FoodPicker({
           </>
         )}
       </aside>
-    </>
+    </>,
+    document.body,
   );
 }
 

@@ -53,6 +53,16 @@ export async function setProgrammeLive(form: FormData) {
   if (data) revalidatePath(trainingPath(data.client_id));
 }
 
+/** Edit the programme's name and the note the client sees at the top of Train. */
+export async function updateProgramme(form: FormData) {
+  const { supabase } = await requireCoach();
+  const id = uuid.parse(form.get("programme_id"));
+  const name = String(form.get("name") ?? "").trim().slice(0, 80) || "Training programme";
+  const notes = String(form.get("notes") ?? "").trim().slice(0, 2000) || null;
+  const { data } = await supabase.from("programmes").update({ name, notes }).eq("id", id).select("client_id").single();
+  if (data) revalidatePath(trainingPath(data.client_id));
+}
+
 const intensifier = z
   .discriminatedUnion("type", [
     z.object({ type: z.literal("drop"), drops: z.number().int().min(1).max(5), pct: z.number().int().min(5).max(60) }),

@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
+import { createPortal } from "react-dom";
 import { saveWorkout } from "@/app/actions/training";
 import { EQUIPMENT, type EquipmentKey } from "@/lib/options";
 import {
@@ -264,7 +265,8 @@ export function Builder({
       </button>
 
       {/* Intensifier side panel */}
-      {p && panel !== null ? (
+      {/* Panels go straight into the page body: inside a frosted card, "fixed" would stick to the card, not the screen. */}
+      {p && panel !== null ? createPortal(
         <>
           <div className="scrim" onClick={() => setPanel(null)} />
           <aside className="panel" role="dialog" aria-label="Intensifier">
@@ -324,14 +326,15 @@ export function Builder({
               Done
             </button>
           </aside>
-        </>
+        </>,
+        document.body,
       ) : null}
 
       {/* Exercise picker */}
-      {picker ? (
+      {picker ? createPortal(
         <>
           <div className="scrim" onClick={() => setPicker(false)} />
-          <aside className="panel" role="dialog" aria-label="Add exercise">
+          <aside className="panel wide" role="dialog" aria-label="Add exercise">
             <div className="panel-head">
               <h2>Add exercise</h2>
               <button className="iconbtn" onClick={() => setPicker(false)} aria-label="Close">✕</button>
@@ -359,7 +362,8 @@ export function Builder({
               {!results.length ? <p className="muted small">Nothing matches. Untick the gym filter to see everything.</p> : null}
             </div>
           </aside>
-        </>
+        </>,
+        document.body,
       ) : null}
     </div>
   );

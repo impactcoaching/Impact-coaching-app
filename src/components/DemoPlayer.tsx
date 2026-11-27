@@ -1,5 +1,7 @@
 "use client";
 
+import { createPortal } from "react-dom";
+
 import { useEffect, useState } from "react";
 import { getDemo } from "@/app/actions/demos";
 import type { Demo } from "@/lib/demos";
@@ -18,7 +20,7 @@ export function DemoPlayer({ exerciseId, name, cues, onClose }: { exerciseId: st
     };
   }, [exerciseId]);
 
-  return (
+  return createPortal(
     <>
       <div className="scrim" onClick={onClose} />
       <aside className="panel" role="dialog" aria-label={`${name} demo`}>
@@ -56,6 +58,7 @@ export function DemoPlayer({ exerciseId, name, cues, onClose }: { exerciseId: st
           </div>
         ) : null}
       </aside>
-    </>
+    </>,
+    document.body,
   );
 }

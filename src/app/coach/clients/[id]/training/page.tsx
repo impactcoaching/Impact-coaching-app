@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireCoach } from "@/lib/auth";
 import { ClientTabs } from "@/components/ClientTabs";
-import { addWorkout, createProgramme, deleteWorkout, markLogSeen, setProgrammeLive } from "@/app/actions/training";
+import { addWorkout, createProgramme, deleteWorkout, markLogSeen, setProgrammeLive, updateProgramme } from "@/app/actions/training";
 import type { Exercise, PlanExercise } from "@/lib/training";
 import { Builder } from "./Builder";
 import { AiDraft } from "@/components/AiDraft";
@@ -83,6 +83,26 @@ export default async function TrainingPage({ params, searchParams }: { params: P
                 <button className={`btn${prog.is_live ? "" : " primary"}`}>{prog.is_live ? "Hide from client" : `Make live for ${first}`}</button>
               </form>
             </div>
+            <details className="edit-prog">
+              <summary className="small">Edit name and note</summary>
+              <form action={updateProgramme} className="stack" style={{ gap: 10, marginTop: 10 }}>
+                <input type="hidden" name="programme_id" value={prog.id} />
+                <label className="field">
+                  <span>Programme name</span>
+                  <input className="ctl" name="name" defaultValue={prog.name} maxLength={80} />
+                </label>
+                <label className="field">
+                  <span>
+                    Note for {first} <span className="hint">(shown at the top of their Train page; leave empty for none)</span>
+                  </span>
+                  <textarea className="ctl" name="notes" rows={4} defaultValue={prog.notes ?? ""} maxLength={2000} />
+                  <span className="hint">A note starting &quot;AI draft.&quot; is the AI&apos;s reasoning for you. {first} never sees it until you rewrite it.</span>
+                </label>
+                <div>
+                  <button className="btn primary">Save</button>
+                </div>
+              </form>
+            </details>
             <div className="wtabs">
               {(workouts ?? []).map((w) => (
                 <Link key={w.id} href={`/coach/clients/${c.id}/training?w=${w.id}`} aria-current={w.id === current?.id ? "page" : undefined}>
