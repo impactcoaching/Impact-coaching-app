@@ -11,6 +11,7 @@ export default async function ClientLayout({ children }: { children: React.React
   const { profile } = await requireProfile();
   if (profile.role === "coach") redirect("/coach");
   if (profile.status === "signing_up") redirect("/welcome");
+  if (profile.status === "ended") redirect("/ended");
   const first = (profile.full_name ?? "").split(" ")[0];
   return (
     <>
