@@ -16,7 +16,7 @@ export function ReplyForm({ checkinId, clientId, clientFirst }: { checkinId: str
     if (!file) return;
     setError(null);
     setVideo({ name: file.name, uploading: true });
-    const r = await uploadFile("checkin-replies", clientId, file, 50);
+    const r = await uploadFile("checkin-replies", clientId, file, 200);
     if (r.error || !r.path) {
       setVideo(null);
       setError(r.error ?? "Upload failed.");
@@ -46,7 +46,7 @@ export function ReplyForm({ checkinId, clientId, clientFirst }: { checkinId: str
           {busy ? "Sending…" : `Send to ${clientFirst}`}
         </button>
       </div>
-      <span className="muted small">Videos up to 50 MB, which is about 1 minute filmed on a phone (2 to 3 minutes if you set the camera to 720p). Supabase’s free plan caps uploads at 50 MB.</span>
+      <span className="muted small">Videos up to 200 MB: about 4 minutes filmed on a phone, or up to 10 minutes if you set the camera to 720p. Bigger files take longer to upload on mobile data.</span>
       {error ? <p className="alert error small">{error}</p> : null}
     </div>
   );
