@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { requireProfile } from "@/lib/auth";
+import { requireClientView } from "@/lib/auth";
 import { todayIn } from "@/lib/nutrition";
 import { daysUntil, litres, peakDate, peakLabel, shortDate, type PeakDay } from "@/lib/peak";
 import { currentPeakWeek } from "@/lib/peak-server";
@@ -30,7 +30,7 @@ function Nums({ d }: { d: PeakDay }) {
 }
 
 export default async function ClientPeak() {
-  const { supabase, user, profile } = await requireProfile();
+  const { supabase, user, profile } = await requireClientView();
   const today = todayIn(profile.time_zone);
   const peak = await currentPeakWeek(supabase, user.id, today);
 

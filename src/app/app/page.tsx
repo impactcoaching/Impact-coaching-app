@@ -1,13 +1,13 @@
 import { ReplayTour } from "@/components/Tour";
 import Link from "next/link";
-import { requireProfile } from "@/lib/auth";
+import { requireClientView } from "@/lib/auth";
 import { todayIn } from "@/lib/nutrition";
 import { daysUntil, shortDate } from "@/lib/peak";
 import { currentPeakWeek } from "@/lib/peak-server";
 import { TrialHome } from "./TrialHome";
 
 export default async function ClientHome({ searchParams }: { searchParams: Promise<{ welcome?: string }> }) {
-  const { supabase, user, profile } = await requireProfile();
+  const { supabase, user, profile } = await requireClientView();
   const sp = await searchParams;
   if (profile.status === "trial") return <TrialHome supabase={supabase} profile={profile} welcome={sp.welcome} />;
   const today = todayIn(profile.time_zone);

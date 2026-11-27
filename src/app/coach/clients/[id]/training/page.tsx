@@ -12,8 +12,9 @@ import { aiEnabled } from "@/lib/ai";
 export default async function TrainingPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ w?: string; drafted?: string }> }) {
   const { id } = await params;
   const sp = await searchParams;
-  const { supabase } = await requireCoach();
-  const { data: c } = await supabase.from("profiles").select("id, full_name").eq("id", id).eq("role", "client").maybeSingle();
+  const { supabase, profile: me } = await requireCoach();
+  const self = id === me.id;
+  const { data: c } = await supabase.from("profiles").select("id, full_name").eq("id", id).or(`role.eq.client,id.eq.${me.id}`).maybeSingle();
   if (!c) notFound();
   const first = (c.full_name ?? "").split(" ")[0] || "this client";
 
@@ -53,7 +54,7 @@ export default async function TrainingPage({ params, searchParams }: { params: P
         ← All clients
       </Link>
       <h1>{c.full_name || "Client"}</h1>
-      <ClientTabs id={c.id} active="training" />
+      <ClientTabs id={c.id} active="training" self={self} />
       {sp.drafted ? <p className="alert ok small" style={{ margin: 0 }}>AI draft ready below. Check every session, then make it live when you&apos;re happy.</p> : null}
 
       <AiDraft kind="training" clientId={c.id} first={first} aiOn={aiEnabled()} />

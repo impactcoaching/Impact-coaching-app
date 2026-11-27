@@ -1,11 +1,11 @@
 import Link from "next/link";
-import { requireProfile } from "@/lib/auth";
+import { requireClientView } from "@/lib/auth";
 import { GENERAL, MODULES, minutesFor, posesFor, WEEKDAY_NAMES } from "@/lib/checkins";
 import { hasConsent, moduleFor } from "@/lib/checkins-server";
 import { CheckinForm } from "./CheckinForm";
 
 export default async function CheckinPage() {
-  const { supabase, user, profile } = await requireProfile();
+  const { supabase, user, profile } = await requireClientView();
   const [module, { data: settings }, { data: intake }, photosAllowed, cycleConsent, { data: past }] = await Promise.all([
     moduleFor(supabase, user.id),
     supabase.from("client_settings").select("*").eq("client_id", user.id).maybeSingle(),

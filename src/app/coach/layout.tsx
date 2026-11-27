@@ -4,6 +4,18 @@ import { Icon } from "@/components/Icons";
 import { NavLink } from "@/components/NavLink";
 import { requireCoach } from "@/lib/auth";
 import { signOut } from "@/app/actions/auth";
+import { startMyTraining } from "@/app/actions/modes";
+
+function ModeSwitch() {
+  return (
+    <form action={startMyTraining} className="modeswitch" aria-label="Use the app as">
+      <span aria-current="page">Coach</span>
+      <div>
+        <button>My training</button>
+      </div>
+    </form>
+  );
+}
 
 const NAV = [
   { href: "/coach", label: "Dashboard", icon: Icon.dash, exact: true },
@@ -19,6 +31,7 @@ export default async function CoachLayout({ children }: { children: React.ReactN
     <div className="coach">
       <aside className="side">
         <Brand sub="COACH" href="/coach" />
+        <ModeSwitch />
         <nav aria-label="Coach menu">
           {NAV.map((n) => (
             <NavLink key={n.href} href={n.href} exact={n.exact}>
@@ -43,6 +56,7 @@ export default async function CoachLayout({ children }: { children: React.ReactN
           <form action={signOut}>
             <button className="link small">Sign out</button>
           </form>
+          <ModeSwitch />
         </div>
         <main className="coach-main">{children}</main>
       </div>

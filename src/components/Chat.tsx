@@ -16,7 +16,7 @@ export type ChatMessage = {
 };
 
 /** One conversation between Adam and a client. New messages show up every 15 seconds while it's open. */
-export function Chat({ clientId, meId, otherName, messages, timeZone }: { clientId: string; meId: string; otherName: string; messages: ChatMessage[]; timeZone?: string }) {
+export function Chat({ clientId, meId, otherName, messages, timeZone, readOnly }: { clientId: string; meId: string; otherName: string; messages: ChatMessage[]; timeZone?: string; readOnly?: boolean }) {
   const router = useRouter();
   const [text, setText] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -30,8 +30,8 @@ export function Chat({ clientId, meId, otherName, messages, timeZone }: { client
     return () => clearInterval(t);
   }, [router]);
   useEffect(() => {
-    if (unread) void markRead(clientId);
-  }, [unread, clientId]);
+    if (unread && !readOnly) void markRead(clientId);
+  }, [unread, clientId, readOnly]);
   useEffect(() => {
     endRef.current?.scrollIntoView({ block: "end" });
   }, [messages.length]);
