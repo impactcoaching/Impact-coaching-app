@@ -1,9 +1,33 @@
 import Link from "next/link";
 import { requireProfile } from "@/lib/auth";
+import { needsGpCheck } from "@/lib/trial-server";
+import { confirmGp } from "@/app/actions/intake";
 
-export default async function TrainPage({ searchParams }: { searchParams: Promise<{ done?: string }> }) {
-  const { supabase, user } = await requireProfile();
+export default async function TrainPage({ searchParams }: { searchParams: Promise<{ done?: string; gp?: string }> }) {
+  const { supabase, user, profile } = await requireProfile();
   const sp = await searchParams;
+  if (await needsGpCheck(supabase, profile)) {
+    return (
+      <>
+        <span className="eyebrow">Train</span>
+        <h1>
+          Train<span>one quick check</span>
+        </h1>
+        <form action={confirmGp} className="card">
+          <h2>Check with your GP first</h2>
+          <p className="muted" style={{ margin: 0 }}>
+            You answered yes to one of the health questions, so please check with your GP that exercise is OK for you before you start. Your starter workouts unlock once you&apos;ve ticked the box. Food logging and messages work as normal in the meantime.
+          </p>
+          {sp.gp ? <p className="alert error" role="alert">Please tick the box first.</p> : null}
+          <label className="check">
+            <input type="checkbox" name="gp" required />
+            <span>I&apos;ve checked with my GP and they&apos;re happy for me to exercise.</span>
+          </label>
+          <button className="btn primary">Unlock my workouts</button>
+        </form>
+      </>
+    );
+  }
   const { data: prog } = await supabase.from("programmes").select("id, name, notes").eq("client_id", user.id).eq("is_live", true).order("created_at", { ascending: false }).limit(1).maybeSingle();
   const { data: workouts } = prog
     ? await supabase.from("workouts").select("id, name, workout_exercises(count)").eq("programme_id", prog.id).order("position")

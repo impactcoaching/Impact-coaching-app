@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { requireCoach } from "@/lib/auth";
 
-const STATUS: Record<string, string> = { signing_up: "Filling in sign-up", pending: "To review", active: "Active", paused: "Paused", ended: "Ended" };
+const STATUS: Record<string, string> = { signing_up: "Filling in sign-up", pending: "To review", trial: "Free trial", active: "Active", paused: "Paused", ended: "Ended" };
 
 export default async function ClientsPage() {
   const { supabase } = await requireCoach();

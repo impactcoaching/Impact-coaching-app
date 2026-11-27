@@ -68,6 +68,7 @@ export function Diary({
   recent,
   outs,
   aiOn,
+  trial = false,
 }: {
   userId: string;
   date: string;
@@ -85,6 +86,7 @@ export function Diary({
   recent: Food[];
   outs: Out[];
   aiOn: boolean;
+  trial?: boolean;
 }) {
   const [foods, setFoods] = useState(initialFoods);
   const [water, setWater] = useState(initialWater);
@@ -158,7 +160,15 @@ export function Diary({
         </p>
       ))}
 
-      {!style ? (
+      {!style && trial ? (
+        <Link href="/app/join-coaching" className="card locked">
+          <span className="eyebrow">Comes with coaching</span>
+          <b>Calorie and macro targets</b>
+          <span className="muted small">
+            I set your targets from your answers, your training and how your body responds, then adjust them each week. A calculator can&apos;t do that bit, so I&apos;d rather not guess. Keep logging for now, it all carries over if you join.
+          </span>
+        </Link>
+      ) : !style ? (
         <p className="alert">Adam is putting your nutrition plan together. You can log food in the meantime.</p>
       ) : planNotes ? (
         <p className="alert">{planNotes}</p>

@@ -30,6 +30,7 @@ const joinSchema = z.object({
   full_name: z.string().trim().min(2, "Enter your name").max(120),
   email: z.string().trim().email("Enter a valid email address"),
   password: z.string().min(10, "Use at least 10 characters for your password").max(200),
+  start: z.enum(["trial", "apply"]).default("apply"),
 });
 
 export async function join(_: FormState, form: FormData): Promise<FormState> {
@@ -40,7 +41,7 @@ export async function join(_: FormState, form: FormData): Promise<FormState> {
   const { data, error } = await supabase.auth.signUp({
     email: parsed.data.email,
     password: parsed.data.password,
-    options: { data: { full_name: parsed.data.full_name }, emailRedirectTo: `${site}/auth/callback?next=/welcome` },
+    options: { data: { full_name: parsed.data.full_name, start: parsed.data.start }, emailRedirectTo: `${site}/auth/callback?next=/welcome` },
   });
   if (error) return { error: error.message };
   // If email confirmation is on, there's no session yet.

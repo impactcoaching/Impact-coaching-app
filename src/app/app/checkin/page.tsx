@@ -45,6 +45,13 @@ export default async function CheckinPage() {
         </div>
       ))}
 
+      {profile.status === "trial" && past?.length ? (
+        <Link href="/app/join-coaching" className="card locked">
+          <span className="eyebrow">Comes with coaching</span>
+          <b>Weekly check-ins</b>
+          <span className="muted small">Your free trial includes one check-in, and you&apos;ve sent it. With coaching you check in every week and Adam replies each time. See coaching options ›</span>
+        </Link>
+      ) : (
       <CheckinForm
         userId={user.id}
         module={module}
@@ -55,6 +62,7 @@ export default async function CheckinPage() {
         photosAllowed={photosAllowed}
         lastWeight={past?.find((c) => c.weight_kg != null)?.weight_kg ?? null}
       />
+      )}
 
       {past?.length ? (
         <div className="card" data-tour="ci-history">

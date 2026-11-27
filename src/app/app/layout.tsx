@@ -6,6 +6,8 @@ import { requireProfile } from "@/lib/auth";
 import { signOut } from "@/app/actions/auth";
 import { IntroReel } from "@/components/IntroReel";
 import { Tour } from "@/components/Tour";
+import Link from "next/link";
+import { trialOver } from "@/lib/trial";
 
 export default async function ClientLayout({ children }: { children: React.ReactNode }) {
   const { profile } = await requireProfile();
@@ -22,6 +24,11 @@ export default async function ClientLayout({ children }: { children: React.React
             <button className="link small">Sign out</button>
           </form>
         </div>
+        {trialOver(profile) ? (
+          <Link href="/app/join-coaching" className="alert" style={{ textDecoration: "none", color: "var(--fg)" }}>
+            Your free trial has finished, so you can look back at everything but not add anything new. <b>See coaching options ›</b>
+          </Link>
+        ) : null}
         {children}
       </div>
       <div className="tabbar">

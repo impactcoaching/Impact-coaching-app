@@ -93,7 +93,8 @@ export default async function FoodPage({ searchParams }: { searchParams: Promise
       foods={[...all.values()]}
       recent={recent}
       outs={outs ?? []}
-      aiOn={aiEnabled()}
+      aiOn={aiEnabled() && profile.status !== "trial"}
+      trial={profile.status === "trial"}
     />
     </>
   );

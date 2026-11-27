@@ -22,6 +22,7 @@ const CONSENT_LABEL: Record<string, string> = {
   progress_photos: "Progress photos stored",
   marketing_photos: "Asked before marketing use",
   cycle_data: "Cycle tracking",
+  marketing_contact: "Contact after the trial",
 };
 
 export default async function ClientPage({ params }: { params: Promise<{ id: string }> }) {
