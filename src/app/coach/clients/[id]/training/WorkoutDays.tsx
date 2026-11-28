@@ -5,7 +5,18 @@ import { setWorkoutDays } from "@/app/actions/training";
 import { WEEKDAYS } from "@/lib/cardio";
 
 /** Weekday picker for one workout. Saves as soon as a day is tapped. */
-export function WorkoutDays({ workoutId, initial, first }: { workoutId: string; initial: number[]; first: string }) {
+export function WorkoutDays({
+  workoutId,
+  initial,
+  first,
+  onSave,
+}: {
+  workoutId?: string;
+  initial: number[];
+  first: string;
+  /** Saves the days. Defaults to the client's workout; templates pass their own. */
+  onSave?: (days: number[]) => Promise<{ error?: string }>;
+}) {
   const [days, setDays] = useState(initial);
   const [pending, start] = useTransition();
   const [msg, setMsg] = useState<{ ok?: boolean; error?: string }>({});
@@ -16,7 +27,7 @@ export function WorkoutDays({ workoutId, initial, first }: { workoutId: string; 
     setDays(next);
     setMsg({});
     start(async () => {
-      const res = await setWorkoutDays(workoutId, next);
+      const res = onSave ? await onSave(next) : await setWorkoutDays(workoutId ?? "", next);
       if (res.error) {
         setDays(before);
         setMsg({ error: res.error });

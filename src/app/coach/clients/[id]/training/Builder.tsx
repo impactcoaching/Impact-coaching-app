@@ -46,8 +46,11 @@ export function Builder({
   gymName,
   gymKit,
   clientFirst,
+  onSave,
 }: {
-  workoutId: string;
+  /** Saves the session. Defaults to the client's workout; templates pass their own. */
+  onSave?: (name: string, exercises: PlanExercise[]) => Promise<{ error?: string }>;
+  workoutId?: string;
   workoutName: string;
   initial: PlanExercise[];
   library: Exercise[];
@@ -96,7 +99,7 @@ export function Builder({
   }
   function save() {
     start(async () => {
-      const res = await saveWorkout({ workoutId, name, exercises: list });
+      const res = onSave ? await onSave(name, list) : await saveWorkout({ workoutId: workoutId ?? "", name, exercises: list });
       if (res.error) setMsg({ error: res.error });
       else {
         setMsg({ ok: "Saved." });

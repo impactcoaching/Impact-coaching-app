@@ -32,8 +32,11 @@ export function PlanBuilder({
   clientFirst,
   country,
   kj,
+  onSave,
 }: {
-  planId: string;
+  planId?: string;
+  /** Saves the plan. Defaults to the client's plan; templates pass their own. */
+  onSave?: (plan: Omit<Parameters<typeof saveNutritionPlan>[0], "planId">) => Promise<{ error?: string }>;
   initialStyle: Style;
   initialNotes: string | null;
   initialDays: DayType[];
@@ -90,12 +93,12 @@ export function PlanBuilder({
 
   function save() {
     start(async () => {
-      const r = await saveNutritionPlan({
-        planId,
+      const plan = {
         style,
         notes: notes.trim() || null,
         dayTypes: days.map((x) => ({ ...x, notes: x.notes?.trim() || null, meals: x.meals.map((m) => ({ name: m.name, notes: m.notes, items: m.items })) })),
-      });
+      };
+      const r = onSave ? await onSave(plan) : await saveNutritionPlan({ ...plan, planId: planId ?? "" });
       if (r.error) setMsg({ error: r.error });
       else {
         setMsg({ ok: "Saved." });

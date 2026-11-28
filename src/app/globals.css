@@ -513,3 +513,15 @@ input[type="range"] { width: 100%; accent-color: var(--pink); }
 .stepsrow { display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap; }
 .stepsrow > .btn { align-self: flex-end !important; }
 .stepsrow > .alert { flex-basis: 100%; }
+
+/* ---------- templates library ---------- */
+.tfilters { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
+.tfilters > * { min-width: 0; }
+.tgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+.tgrid > * { min-width: 0; }
+.tcard { text-decoration: none; color: var(--fg); gap: 8px; transition: border-color .15s; }
+.tcard:hover { border-color: rgba(255, 46, 136, 0.5); }
+.tcard-name { font-size: 18px; line-height: 1.2; }
+.tactions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.ttools summary { cursor: pointer; list-style-position: outside; }
+.ttools summary b { margin-right: 6px; }

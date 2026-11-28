@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireCoach, requireProfile } from "@/lib/auth";
 import { isDate } from "@/lib/nutrition";
+import { parseCardioForm } from "@/lib/cardio-form";
 
 const uuid = z.string().uuid();
 export type CardioResult = { error?: string; ok?: string } | null;
@@ -21,55 +22,19 @@ function refresh(clientId: string) {
 
 // ---------- coach: targets and sessions ----------
 
-const sessionInput = z.object({
-  day: optInt(1, 7),
-  kind: z.string().trim().min(1).max(60),
-  minutes: optInt(1, 600),
-  mode: z.enum(["hr", "rpe", "speed", "intervals"]),
-  target: text(80),
-  iv_work: optInt(1, 3600),
-  iv_rest: optInt(0, 3600),
-  iv_rounds: optInt(1, 100),
-  timing: text(40),
-  notes: text(500),
-});
-
 /** Save a client's weekly targets and replace their sessions with the ones on the form. */
 export async function saveCardioPlan(_prev: CardioResult, form: FormData): Promise<CardioResult> {
   const { supabase } = await requireCoach();
   const clientId = uuid.safeParse(form.get("client_id"));
   if (!clientId.success) return { error: "Something went wrong. Refresh and try again." };
-  const target = optInt(0, 3000).safeParse(form.get("weekly_minutes"));
-  const steps = optInt(0, 60000).safeParse(form.get("daily_steps"));
-  if (!target.success) return { error: "Weekly minutes should be a whole number up to 3000." };
-  if (!steps.success) return { error: "Daily steps should be a whole number up to 60,000." };
-
-  const keys = form.getAll("row").map(String);
-  const rows = [];
-  for (const [i, k] of keys.entries()) {
-    const get = (f: string) => form.get(`${f}_${k}`);
-    const p = sessionInput.safeParse({
-      day: get("day"),
-      kind: get("kind"),
-      minutes: get("minutes"),
-      mode: get("mode"),
-      target: get("target"),
-      iv_work: get("iv_work"),
-      iv_rest: get("iv_rest"),
-      iv_rounds: get("iv_rounds"),
-      timing: get("timing"),
-      notes: get("notes"),
-    });
-    if (!p.success) return { error: `Check session ${i + 1}: minutes are 1 to 600, intervals need seconds on and rounds.` };
-    const d = p.data;
-    if (d.mode === "intervals" && (!d.iv_work || !d.iv_rounds)) return { error: `Session ${i + 1} is intervals, so it needs seconds on and the number of rounds.` };
-    const id = uuid.safeParse(get("id"));
-    rows.push({ ...d, id: id.success ? id.data : crypto.randomUUID(), minutes: d.minutes ?? 30, client_id: clientId.data, position: i });
-  }
+  const parsed = parseCardioForm(form);
+  if ("error" in parsed) return { error: parsed.error };
+  const { weekly_minutes, daily_steps, extra_counts, sessions } = parsed.data;
+  const rows = sessions.map((r) => ({ ...r, id: r.id ?? crypto.randomUUID(), client_id: clientId.data }));
 
   const { error: pErr } = await supabase
     .from("cardio_plans")
-    .upsert({ client_id: clientId.data, weekly_minutes: target.data ?? 0, daily_steps: steps.data, extra_counts: form.get("extra_counts") === "on" });
+    .upsert({ client_id: clientId.data, weekly_minutes, daily_steps, extra_counts });
   if (pErr) return { error: "Couldn't save the targets. Please try again." };
   // Keep each session's id, so cardio already logged against it stays linked to it.
   if (rows.length) {

@@ -3,6 +3,7 @@
 import { useActionState, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { saveCardioPlan, type CardioResult } from "@/app/actions/cardio";
+import { saveTemplateCardio } from "@/app/actions/templates";
 import { CARDIO_KINDS, CARDIO_MODES, CARDIO_TIMING, HR_ZONES, RPE_VALUES, WEEKDAYS, sessionMinutes, type CardioMode, type CardioPlan, type CardioSession } from "@/lib/cardio";
 
 type Row = {
@@ -21,7 +22,7 @@ type Row = {
 };
 
 const s = (v: number | string | null | undefined) => (v == null ? "" : String(v));
-const toRow = (x: CardioSession): Row => ({
+const toRow = (x: Omit<CardioSession, "client_id">): Row => ({
   key: x.id,
   id: x.id,
   day: s(x.day),
@@ -40,17 +41,30 @@ const blank = (): Row => ({ key: `new${++n}`, day: "", kind: "Incline walk", min
 const rowMinutes = (r: Row) =>
   sessionMinutes({ mode: r.mode, minutes: Number(r.minutes) || 0, iv_work: Number(r.iv_work) || null, iv_rest: Number(r.iv_rest) || 0, iv_rounds: Number(r.iv_rounds) || null });
 
-function Save({ first }: { first: string }) {
+function Save({ label }: { label: string }) {
   const { pending } = useFormStatus();
   return (
     <button className="btn primary" disabled={pending} aria-busy={pending}>
-      {pending ? "Saving…" : `Save and send to ${first}`}
+      {pending ? "Saving…" : label}
     </button>
   );
 }
 
-export function CardioEditor({ clientId, first, plan, sessions }: { clientId: string; first: string; plan: CardioPlan | null; sessions: CardioSession[] }) {
-  const [state, action] = useActionState<CardioResult, FormData>(saveCardioPlan, null);
+/** A client's cardio, or with templateId, the cardio that comes with a programme template. */
+export function CardioEditor({
+  clientId,
+  templateId,
+  first,
+  plan,
+  sessions,
+}: {
+  clientId?: string;
+  templateId?: string;
+  first: string;
+  plan: Pick<CardioPlan, "weekly_minutes" | "daily_steps" | "extra_counts"> | null;
+  sessions: Omit<CardioSession, "client_id">[];
+}) {
+  const [state, action] = useActionState<CardioResult, FormData>(templateId ? saveTemplateCardio : saveCardioPlan, null);
   const [rows, setRows] = useState<Row[]>(sessions.map(toRow));
   const [target, setTarget] = useState(s(plan?.weekly_minutes ?? ""));
   const set = (key: string, patch: Partial<Row>) => setRows((cur) => cur.map((r) => (r.key === key ? { ...r, ...patch } : r)));
@@ -62,7 +76,7 @@ export function CardioEditor({ clientId, first, plan, sessions }: { clientId: st
 
   return (
     <form action={action} className="stack">
-      <input type="hidden" name="client_id" value={clientId} />
+      {templateId ? <input type="hidden" name="template_id" value={templateId} /> : <input type="hidden" name="client_id" value={clientId} />}
       <section className="card stack" style={{ gap: 14 }}>
         <div className="row" style={{ justifyContent: "space-between", alignItems: "baseline", flexWrap: "wrap" }}>
           <h2 style={{ margin: 0 }}>Weekly targets</h2>
@@ -218,7 +232,7 @@ export function CardioEditor({ clientId, first, plan, sessions }: { clientId: st
           <button type="button" className="btn" onClick={() => setRows((cur) => [...cur, blank()])}>
             + Add session
           </button>
-          <Save first={first} />
+          <Save label={templateId ? "Save cardio" : `Save and send to ${first}`} />
         </div>
         {state?.error ? (
           <p className="alert error small" role="alert" style={{ margin: 0 }}>

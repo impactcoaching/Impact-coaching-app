@@ -6,11 +6,10 @@ import { z } from "zod";
 import { requireCoach, requireProfile } from "@/lib/auth";
 import { forGrams, type Food, type FoundFood } from "@/lib/nutrition";
 import { searchOff } from "@/lib/openfoodfacts";
+import { dayTypeInput } from "@/lib/schemas";
 
 const uuid = z.string().uuid();
 const date = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
-const int = (max: number) => z.number().int().min(0).max(max).nullable();
-const portion = z.number().min(0).max(20).nullable();
 
 // ---------- food search (coach and client) ----------
 
@@ -87,33 +86,6 @@ export async function setNutritionLive(form: FormData) {
   const { data } = await supabase.from("nutrition_plans").update({ is_live: live }).eq("id", id).select("client_id").single();
   if (data) revalidatePath(`/coach/clients/${data.client_id}/nutrition`);
 }
-
-const dayTypeInput = z.object({
-  id: uuid.optional(),
-  name: z.string().trim().min(1).max(40),
-  weekdays: z.array(z.number().int().min(1).max(7)).max(7),
-  kcal: int(10000),
-  protein_g: int(1000),
-  carbs_g: int(2000),
-  fat_g: int(1000),
-  fibre_g: int(200),
-  sodium_mg: int(20000),
-  water_ml: int(15000),
-  palms: portion,
-  fists: portion,
-  cupped: portion,
-  thumbs: portion,
-  notes: z.string().max(1000).nullable(),
-  meals: z
-    .array(
-      z.object({
-        name: z.string().trim().min(1).max(40),
-        notes: z.string().max(500).nullable(),
-        items: z.array(z.object({ food_id: uuid, grams: z.number().min(1).max(5000) })).max(30),
-      }),
-    )
-    .max(10),
-});
 
 const planInput = z.object({
   planId: uuid,
