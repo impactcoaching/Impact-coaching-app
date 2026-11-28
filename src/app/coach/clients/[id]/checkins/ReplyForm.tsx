@@ -3,8 +3,9 @@
 import { useRef, useState, useTransition } from "react";
 import { replyCheckin } from "@/app/actions/checkins";
 import { uploadFile } from "@/lib/upload";
+import { VideoRecorder } from "@/components/VideoRecorder";
 
-/** Reply to a check-in with text, a video, or both. Record on the phone or pick a file. */
+/** Reply to a check-in with text, a video, or both. Record in the page (screen + face on a laptop, face bubble on a phone) or pick a file. */
 export function ReplyForm({ checkinId, clientId, clientFirst }: { checkinId: string; clientId: string; clientFirst: string }) {
   const [text, setText] = useState("");
   const [video, setVideo] = useState<{ path?: string; name: string; uploading: boolean } | null>(null);
@@ -39,14 +40,20 @@ export function ReplyForm({ checkinId, clientId, clientFirst }: { checkinId: str
       </label>
       <input ref={ref} type="file" accept="video/*" hidden onChange={(e) => (void onFile(e.target.files?.[0]), (e.target.value = ""))} />
       <div className="row" style={{ gap: 8, flexWrap: "wrap" }}>
+        {video?.uploading ? (
+          <span className="btn" aria-live="polite">Uploading video…</span>
+        ) : video?.path ? (
+          <span className="chip pink">🎥 Video added ✓</span>
+        ) : null}
+        <VideoRecorder onDone={(f) => void onFile(f)} disabled={video?.uploading} />
         <button className="btn" type="button" onClick={() => ref.current?.click()} disabled={video?.uploading}>
-          {video?.uploading ? "Uploading video…" : video?.path ? "🎥 Video added ✓ (change)" : "🎥 Record or add a video"}
+          {video?.path ? "Change video" : "Upload a video"}
         </button>
         <button className="btn primary" type="button" onClick={send} disabled={busy || video?.uploading || (!text.trim() && !video?.path)}>
           {busy ? "Sending…" : `Send to ${clientFirst}`}
         </button>
       </div>
-      <span className="muted small">Videos up to 200 MB: about 4 minutes filmed on a phone, or up to 10 minutes if you set the camera to 720p. Bigger files take longer to upload on mobile data.</span>
+      <span className="muted small">Record here and scroll through their check-in while you talk, up to 10 minutes. Or upload a video up to 200 MB. Bigger files take longer to upload on mobile data.</span>
       {error ? <p className="alert error small">{error}</p> : null}
     </div>
   );
