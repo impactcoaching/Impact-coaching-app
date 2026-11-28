@@ -51,7 +51,7 @@ export default async function TrialsPage() {
       </h1>
 
       <p className="muted small" style={{ margin: 0 }}>
-        New trials start straight away. Competitors are given the programme for their class, focus and days a week, and everyone gets a nutrition plan sized from their sign-up answers, both live straight away. Non-competitors get your starter workouts for now. Anyone with a health flag, a medical note about food, or no height and weight is left for you: they get your starter workouts and no nutrition plan. Change anything on their Training and Nutrition pages, the same as any client.
+        New trials start straight away. Competitors are given the programme for their class, focus and days a week. Non-competitors get one for their goal and days a week, in a gym or home version to match the kit they ticked. Everyone gets a nutrition plan sized from their sign-up answers. Both go live straight away. Anyone with a health flag is left for you: they get your starter workouts and no nutrition plan. A medical note about food, or no height and weight, means no nutrition plan. Change anything on their Training and Nutrition pages, the same as any client.
         {!bookingUrl() ? " No call booking link is set yet, so \"Book a call\" opens Messages. Add your Calendly link in Vercel as NEXT_PUBLIC_BOOKING_URL to change that." : ""}
       </p>
 

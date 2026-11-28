@@ -84,3 +84,10 @@ Edit the sessions in `src/men.py`, `src/women.py`, `src/mens_physique.py` or a c
 56 plans: balanced, high protein, vegetarian and vegan, from 1,400 to 4,000 kcal in 200 kcal steps. Each has a training
 day (with a post-workout meal) and a rest day, plus hand portions and swaps. Edit `src/nutrition.py`, then run
 `cd src && python3 nutrition.py 0019`. Strom and Per4m products are added as foods in part 1, with where each value came from.
+
+## Non-competitor programmes (0021)
+
+48 programmes for trial clients who don't compete: women and men, fat loss, build muscle, and strength and fitness,
+3 to 6 days, each in a full gym and a home version (dumbbells, a bench and bands). Abs twice a week, one intensifier a
+session. Edit `src/noncomp.py`, then run `cd src && python3 noncomp.py 0021`. `migrations/0022_noncomp_auto_assign.sql`
+gives them to non-competitor trials automatically.
