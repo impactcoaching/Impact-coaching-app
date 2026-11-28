@@ -6,6 +6,9 @@ import { addWorkout, createProgramme, deleteWorkout, markLogSeen, setProgrammeLi
 import type { Exercise, PlanExercise } from "@/lib/training";
 import { Builder } from "./Builder";
 import { ProgrammeEdit } from "./ProgrammeEdit";
+import { WorkoutDays } from "./WorkoutDays";
+import { workoutDays } from "@/lib/training";
+import { WEEKDAYS } from "@/lib/cardio";
 import { AiDraft } from "@/components/AiDraft";
 import { aiEnabled } from "@/lib/ai";
 
@@ -31,8 +34,12 @@ export default async function TrainingPage({ params, searchParams }: { params: P
   ]);
 
   const { data: workouts } = prog
-    ? await supabase.from("workouts").select("id, name, position").eq("programme_id", prog.id).order("position")
+    ? await supabase.from("workouts").select("*").eq("programme_id", prog.id).order("position")
     : { data: null };
+  // The week at a glance, once any session has set days.
+  const week = WEEKDAYS.map((_, i) => (workouts ?? []).filter((w) => workoutDays(w).includes(i + 1)).map((w) => w.name));
+  const anyDays = week.some((d) => d.length);
+  const allSet = (workouts ?? []).every((w) => workoutDays(w).length);
   const current = workouts?.find((w) => w.id === sp.w) ?? workouts?.[0];
   const { data: plan } = current
     ? await supabase.from("workout_exercises").select("*").eq("workout_id", current.id).order("position")
@@ -97,6 +104,17 @@ export default async function TrainingPage({ params, searchParams }: { params: P
                 <button className="link">+ Add a session</button>
               </form>
             </div>
+            {anyDays ? (
+              <div className="week-plan" aria-label={`${first}'s week`}>
+                {WEEKDAYS.map((d, i) => (
+                  <div key={d} className={week[i].length ? "on" : undefined}>
+                    <b>{d}</b>
+                    <span>{week[i].length ? week[i].join(", ") : allSet ? "Rest" : "–"}</span>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+            {current ? <WorkoutDays key={current.id} workoutId={current.id} initial={workoutDays(current)} first={first} /> : null}
           </div>
 
           {current ? (

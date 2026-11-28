@@ -124,3 +124,21 @@ export function setLabels(list: { linked_to_previous: boolean }[]) {
 export function groupName(size: number) {
   return size === 2 ? "Superset" : size === 3 ? "Tri-set" : "Giant set";
 }
+
+/** The days a workout is set for, from the database (null before 0016 is run). */
+export const workoutDays = (w: { weekdays?: number[] | null }) => (Array.isArray(w.weekdays) ? w.weekdays : []);
+
+/** "Mon, Thu" or "Any day". */
+export function daysText(days: number[]) {
+  const names = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  return days.length ? [...days].sort().map((d) => names[d - 1]).join(", ") : "Any day";
+}
+
+/** The calendar date (YYYY-MM-DD) of a moment in the client's time zone. */
+export function dateIn(iso: string, tz: string | null) {
+  try {
+    return new Intl.DateTimeFormat("en-CA", { timeZone: tz || "Europe/London", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(iso));
+  } catch {
+    return iso.slice(0, 10);
+  }
+}
