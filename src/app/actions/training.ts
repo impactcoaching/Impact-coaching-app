@@ -53,6 +53,21 @@ export async function setProgrammeLive(form: FormData) {
   if (data) revalidatePath(trainingPath(data.client_id));
 }
 
+/** Put a workout on set weekdays (1 Monday .. 7 Sunday). Empty means any day. */
+export async function setWorkoutDays(workoutId: string, days: number[]): Promise<{ error?: string }> {
+  const { supabase } = await requireCoach();
+  const id = uuid.safeParse(workoutId);
+  const list = z.array(z.number().int().min(1).max(7)).max(7).safeParse(days);
+  if (!id.success || !list.success) return { error: "Something went wrong. Please refresh and try again." };
+  const weekdays = [...new Set(list.data)].sort();
+  const { data, error } = await supabase.from("workouts").update({ weekdays }).eq("id", id.data).select("client_id").single();
+  if (error?.code === "42703" || error?.code === "PGRST204") return { error: "Days need a quick database update first: run 0016_workout_days.sql in Supabase." };
+  if (error || !data) return { error: "Couldn't save the days. Please try again." };
+  revalidatePath(trainingPath(data.client_id));
+  revalidatePath("/app/train");
+  return {};
+}
+
 /** Edit the programme's name and the note the client sees at the top of Train. */
 export async function updateProgramme(_prev: { ok?: boolean; error?: string }, form: FormData): Promise<{ ok?: boolean; error?: string }> {
   const { supabase } = await requireCoach();

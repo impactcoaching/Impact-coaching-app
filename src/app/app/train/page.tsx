@@ -3,8 +3,9 @@ import Link from "next/link";
 import { requireClientView } from "@/lib/auth";
 import { needsGpCheck } from "@/lib/trial-server";
 import { confirmGp } from "@/app/actions/intake";
-import { todayIn } from "@/lib/nutrition";
-import { weekOf, type CardioLog, type CardioPlan, type CardioSession } from "@/lib/cardio";
+import { isoWeekday, todayIn } from "@/lib/nutrition";
+import { dateIn, daysText, workoutDays } from "@/lib/training";
+import { WEEKDAYS, weekOf, type CardioLog, type CardioPlan, type CardioSession } from "@/lib/cardio";
 import { CardioCard } from "./CardioCard";
 
 export default async function TrainPage({ searchParams }: { searchParams: Promise<{ done?: string; gp?: string }> }) {
@@ -34,7 +35,7 @@ export default async function TrainPage({ searchParams }: { searchParams: Promis
   }
   const { data: prog } = await supabase.from("programmes").select("id, name, notes").eq("client_id", user.id).eq("is_live", true).order("created_at", { ascending: false }).limit(1).maybeSingle();
   const { data: workouts } = prog
-    ? await supabase.from("workouts").select("id, name, workout_exercises(count)").eq("programme_id", prog.id).order("position")
+    ? await supabase.from("workouts").select("*, workout_exercises(count)").eq("programme_id", prog.id).order("position")
     : { data: null };
   const { data: logs } = await supabase.from("workout_logs").select("workout_id, started_at").eq("client_id", user.id).order("started_at", { ascending: false }).limit(50);
   const today = todayIn(profile.time_zone);
@@ -47,6 +48,22 @@ export default async function TrainPage({ searchParams }: { searchParams: Promis
   ]);
   const last = new Map<string, string>();
   (logs ?? []).forEach((l) => l.workout_id && !last.has(l.workout_id) && last.set(l.workout_id, l.started_at));
+
+  // Set days. Each log this week ticks off the earliest set day of that workout, so a
+  // session done a day late still counts.
+  const list = workouts ?? [];
+  const todayN = isoWeekday(today);
+  const hasDays = list.some((w) => workoutDays(w).length);
+  const allSet = list.length > 0 && list.every((w) => workoutDays(w).length);
+  const doneThisWeek = new Map<string, number>();
+  (logs ?? []).forEach((l) => {
+    const d = dateIn(l.started_at, profile.time_zone);
+    if (l.workout_id && d >= week.start && d <= week.end) doneThisWeek.set(l.workout_id, (doneThisWeek.get(l.workout_id) ?? 0) + 1);
+  });
+  const ticked = new Set<string>(); // `${workoutId}:${day}`
+  list.forEach((w) => workoutDays(w).slice(0, doneThisWeek.get(w.id) ?? 0).forEach((d) => ticked.add(`${w.id}:${d}`)));
+  const weekPlan = WEEKDAYS.map((_, i) => list.filter((w) => workoutDays(w).includes(i + 1)));
+  const todays = weekPlan[todayN - 1];
 
   return (
     <>
@@ -64,7 +81,55 @@ export default async function TrainPage({ searchParams }: { searchParams: Promis
       ) : (
         <div className="stack">
           {clientNote(prog.notes) ? <p className="alert">{clientNote(prog.notes)}</p> : null}
-          {(workouts ?? []).map((w) => {
+          {hasDays ? (
+            <div className="card">
+              <span className="eyebrow">Today, {WEEKDAYS[todayN - 1]}</span>
+              {todays.length ? (
+                todays.map((w) => {
+                  const done = ticked.has(`${w.id}:${todayN}`);
+                  return (
+                    <div key={w.id} className="row" style={{ justifyContent: "space-between" }}>
+                      <div>
+                        <h2 style={{ margin: 0 }}>{w.name}</h2>
+                        <span className="muted small">{done ? "Done. Nice work." : "This is today's session."}</span>
+                      </div>
+                      {done ? (
+                        <span className="chip">Done ✓</span>
+                      ) : (
+                        <Link href={`/app/train/${w.id}`} className="btn primary">
+                          Start
+                        </Link>
+                      )}
+                    </div>
+                  );
+                })
+              ) : (
+                <>
+                  <h2 style={{ margin: 0 }}>{allSet ? "Rest day" : "No set session today"}</h2>
+                  <p className="muted small" style={{ margin: 0 }}>
+                    {allSet
+                      ? "Recovery is where the training pays off, so enjoy it. If you missed a session this week, you can catch up on it below."
+                      : "If you're training today, pick a session below."}
+                  </p>
+                </>
+              )}
+              <div className="week-plan" aria-label="Your week">
+                {WEEKDAYS.map((d, i) => {
+                  const ws = weekPlan[i];
+                  const allDone = ws.length > 0 && ws.every((w) => ticked.has(`${w.id}:${i + 1}`));
+                  return (
+                    <div key={d} className={[ws.length ? "on" : "", i + 1 === todayN ? "today" : ""].join(" ").trim() || undefined}>
+                      <b>{d}</b>
+                      <span>{ws.length ? ws.map((w) => w.name).join(", ") : allSet ? "Rest" : "–"}</span>
+                      {allDone ? <span className="wp-tick" aria-label="done">✓</span> : null}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ) : null}
+          {hasDays ? <h2 style={{ margin: "8px 0 0" }}>All sessions</h2> : null}
+          {list.map((w) => {
             const n = (w.workout_exercises as unknown as { count: number }[])[0]?.count ?? 0;
             const when = last.get(w.id);
             return (
@@ -73,8 +138,9 @@ export default async function TrainPage({ searchParams }: { searchParams: Promis
                   <div>
                     <h2>{w.name}</h2>
                     <span className="muted small">
+                      {hasDays ? `${daysText(workoutDays(w))} · ` : ""}
                       {n} exercise{n === 1 ? "" : "s"}
-                      {when ? ` · last done ${new Date(when).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })}` : " · not done yet"}
+                      {when ? ` · last done ${new Date(when).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", timeZone: profile.time_zone || "Europe/London" })}` : " · not done yet"}
                     </span>
                   </div>
                   <span className="chip pink">Start ›</span>
