@@ -11,8 +11,10 @@ import { workoutDays } from "@/lib/training";
 import { WEEKDAYS } from "@/lib/cardio";
 import { AiDraft } from "@/components/AiDraft";
 import { aiEnabled } from "@/lib/ai";
+import { CopiedNote, TemplateTools } from "@/components/TemplateTools";
+import { templateChoices } from "@/lib/templates-server";
 
-export default async function TrainingPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ w?: string; drafted?: string }> }) {
+export default async function TrainingPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ w?: string; drafted?: string; copied?: string; missing?: string; cardio?: string }> }) {
   const { id } = await params;
   const sp = await searchParams;
   const { supabase, profile: me } = await requireCoach();
@@ -21,7 +23,7 @@ export default async function TrainingPage({ params, searchParams }: { params: P
   if (!c) notFound();
   const first = (c.full_name ?? "").split(" ")[0] || "this client";
 
-  const [{ data: prog }, { data: gym }, { data: library }, { data: logs }] = await Promise.all([
+  const [{ data: prog }, { data: gym }, { data: library }, { data: logs }, templates, { count: earlierLive }] = await Promise.all([
     supabase.from("programmes").select("*").eq("client_id", id).order("created_at", { ascending: false }).limit(1).maybeSingle(),
     supabase.from("gyms").select("name, equipment").eq("client_id", id).eq("is_main", true).maybeSingle(),
     supabase.from("exercises").select("id, name, muscle, equipment, demo_url, cues").order("muscle").order("name"),
@@ -31,6 +33,8 @@ export default async function TrainingPage({ params, searchParams }: { params: P
       .eq("client_id", id)
       .order("started_at", { ascending: false })
       .limit(5),
+    templateChoices(supabase, "training"),
+    supabase.from("programmes").select("id", { count: "exact", head: true }).eq("client_id", id).eq("is_live", true),
   ]);
 
   const { data: workouts } = prog
@@ -64,7 +68,10 @@ export default async function TrainingPage({ params, searchParams }: { params: P
       <ClientTabs id={c.id} active="training" self={self} />
       {sp.drafted ? <p className="alert ok small" style={{ margin: 0 }}>AI draft ready below. Check every session, then make it live when you&apos;re happy.</p> : null}
 
+      <CopiedNote name={sp.copied} missing={sp.missing} cardio={sp.cardio} what="programme" />
+
       <AiDraft kind="training" clientId={c.id} first={first} aiOn={aiEnabled()} />
+      <TemplateTools kind="training" clientId={c.id} planId={prog?.id ?? null} first={first} templates={templates} open={!prog && !!templates?.length} />
 
       {!prog ? (
         <div className="card">
@@ -84,6 +91,7 @@ export default async function TrainingPage({ params, searchParams }: { params: P
               <div>
                 <span className="eyebrow">{prog.is_live ? `Live: ${first} can see this` : `Draft: ${first} can't see this yet`}</span>
                 <h2>{prog.name}</h2>
+                {!prog.is_live && earlierLive ? <p className="muted small" style={{ margin: "4px 0 0" }}>{first} keeps their earlier programme until you make this one live.</p> : null}
                 {prog.notes ? <p className="muted small" style={{ margin: "4px 0 0", whiteSpace: "pre-wrap" }}>{prog.notes}</p> : null}
               </div>
               <form action={setProgrammeLive}>

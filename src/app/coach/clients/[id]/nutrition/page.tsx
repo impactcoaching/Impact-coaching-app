@@ -8,6 +8,8 @@ import { STYLES, addDays, dayLabel, energyText, pickDayType, showsKj, sum, today
 import { PlanBuilder } from "./PlanBuilder";
 import { AiDraft } from "@/components/AiDraft";
 import { aiEnabled } from "@/lib/ai";
+import { CopiedNote, TemplateTools } from "@/components/TemplateTools";
+import { templateChoices } from "@/lib/templates-server";
 
 type DayRow = Omit<DayType, "meals"> & {
   id: string;
@@ -17,7 +19,7 @@ type DayRow = Omit<DayType, "meals"> & {
 
 const pct = (a: number, b: number | null) => (b ? Math.round((a / b) * 100) : null);
 
-export default async function NutritionPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ drafted?: string }> }) {
+export default async function NutritionPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ drafted?: string; copied?: string; missing?: string }> }) {
   const { id } = await params;
   const sp = await searchParams;
   const { supabase, profile: me } = await requireCoach();
@@ -29,13 +31,15 @@ export default async function NutritionPage({ params, searchParams }: { params: 
   const today = todayIn(c.time_zone);
   const from = addDays(today, -6);
 
-  const [{ data: intake }, { data: plan }, { data: foods }, { data: logs }, { data: dayRows }, { data: outs }] = await Promise.all([
+  const [{ data: intake }, { data: plan }, { data: foods }, { data: logs }, { data: dayRows }, { data: outs }, templates, { count: earlierLive }] = await Promise.all([
     supabase.from("client_intake").select("nutrition_style, dietary_needs").eq("client_id", id).maybeSingle(),
     supabase.from("nutrition_plans").select("*").eq("client_id", id).order("created_at", { ascending: false }).limit(1).maybeSingle(),
     supabase.from("foods").select("*").or(`owner_id.is.null,owner_id.eq.${id}`).order("name"),
     supabase.from("food_logs").select("log_date, kcal, protein_g, carbs_g, fat_g, fibre_g, sodium_mg, eating_out").eq("client_id", id).gte("log_date", from).lte("log_date", today),
     supabase.from("nutrition_days").select("log_date, day_type_id, water_ml").eq("client_id", id).gte("log_date", from).lte("log_date", today),
     supabase.from("eating_out").select("*").eq("client_id", id).order("created_at", { ascending: false }).limit(5),
+    templateChoices(supabase, "nutrition"),
+    supabase.from("nutrition_plans").select("id", { count: "exact", head: true }).eq("client_id", id).eq("is_live", true),
   ]);
 
   const { data: days } = plan
@@ -96,7 +100,9 @@ export default async function NutritionPage({ params, searchParams }: { params: 
       ) : null}
 
       {sp.drafted ? <p className="alert ok small" style={{ margin: 0 }}>AI draft ready below. Check the targets, set sodium and water if you use them, then make it live.</p> : null}
+      <CopiedNote name={sp.copied} missing={sp.missing} what="nutrition plan" />
       <AiDraft kind="nutrition" clientId={c.id} first={first} style={(plan?.style as string | undefined) ?? defaultStyle} aiOn={aiEnabled()} />
+      <TemplateTools kind="nutrition" clientId={c.id} planId={plan?.id ?? null} first={first} templates={templates} open={!plan && !!templates?.length} />
 
       {!plan ? (
         <div className="card">
@@ -123,6 +129,7 @@ export default async function NutritionPage({ params, searchParams }: { params: 
               <div>
                 <span className="eyebrow">{plan.is_live ? `Live: ${first} can see this` : `Draft: ${first} can't see this yet`}</span>
                 <h2>{STYLES[plan.style as Style].label}</h2>
+                {!plan.is_live && earlierLive ? <p className="muted small" style={{ margin: "4px 0 0" }}>{first} keeps their earlier plan until you make this one live.</p> : null}
               </div>
               <form action={setNutritionLive}>
                 <input type="hidden" name="plan_id" value={plan.id} />

@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requireCoach, requireProfile } from "@/lib/auth";
+import { planExercise } from "@/lib/schemas";
 
 const uuid = z.string().uuid();
 
@@ -83,34 +84,6 @@ export async function updateProgramme(_prev: { ok?: boolean; error?: string }, f
   revalidatePath(trainingPath(data.client_id));
   return { ok: true };
 }
-
-const intensifier = z
-  .discriminatedUnion("type", [
-    z.object({ type: z.literal("drop"), drops: z.number().int().min(1).max(5), pct: z.number().int().min(5).max(60) }),
-    z.object({ type: z.literal("rp"), mini: z.number().int().min(1).max(6), rest: z.number().int().min(5).max(60) }),
-    z.object({ type: z.literal("cluster"), clusters: z.number().int().min(2).max(8), reps: z.number().int().min(1).max(10), rest: z.number().int().min(5).max(90) }),
-    z.object({ type: z.literal("myo"), mini: z.number().int().min(1).max(8), reps: z.number().int().min(1).max(10), rest: z.number().int().min(3).max(30) }),
-    z.object({ type: z.literal("partials"), reps: z.number().int().min(1).max(20) }),
-  ])
-  .nullable();
-
-const planExercise = z.object({
-  exercise_id: uuid,
-  linked_to_previous: z.boolean(),
-  warmup_sets: z.number().int().min(0).max(10),
-  work_sets: z.number().int().min(1).max(20),
-  reps_type: z.enum(["fixed", "range", "amrap", "time"]),
-  reps_min: z.number().int().min(1).max(300).nullable(),
-  reps_max: z.number().int().min(1).max(300).nullable(),
-  tempo: z.string().max(20).nullable(),
-  effort_type: z.enum(["RIR", "RPE", "%1RM", "Weight"]),
-  effort_value: z.string().max(20).nullable(),
-  rest_seconds: z.number().int().min(0).max(900),
-  intensifier,
-  intensifier_on: z.enum(["last", "all"]),
-  film_set: z.number().int().min(1).max(20).nullable(),
-  notes: z.string().max(1000).nullable(),
-});
 
 const saveSchema = z.object({ workoutId: uuid, name: z.string().trim().min(1).max(60), exercises: z.array(planExercise).max(40) });
 

@@ -2,6 +2,7 @@ import { requireCoach } from "@/lib/auth";
 import { demoSource, type DemoFields } from "@/lib/demos";
 import { workoutxReady } from "@/lib/workoutx";
 import { LibraryList, type LibraryExercise } from "./LibraryList";
+import { LibraryTabs } from "@/components/LibraryTabs";
 
 export const maxDuration = 60;
 
@@ -25,6 +26,7 @@ export default async function LibraryPage() {
         Exercises
         <span>and their demos</span>
       </h1>
+      <LibraryTabs active="exercises" />
       <LibraryList exercises={list} muscles={muscles} stockReady={stockOn} />
     </>
   );
