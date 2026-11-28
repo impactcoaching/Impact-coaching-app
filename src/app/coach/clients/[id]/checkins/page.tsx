@@ -6,6 +6,8 @@ import { PhotoCompare, type Photo } from "@/components/PhotoCompare";
 import { markCheckinSeen, saveClientSettings } from "@/app/actions/checkins";
 import { GENERAL, MEASUREMENTS, MODULES, POSE_TEMPLATES, SCALE_MAX, WEEKDAY_NAMES, flagsFor, posesFor, suggestModule, type ModuleKey, type Question } from "@/lib/checkins";
 import { ReplyForm } from "./ReplyForm";
+import { addDays } from "@/lib/nutrition";
+import { countedMinutes } from "@/lib/cardio";
 
 type Answers = Record<string, string | number>;
 
@@ -94,6 +96,17 @@ export default async function ClientCheckins({ params, searchParams }: { params:
     .reverse()
     .map((x) => ({ d: x.created_at as string, w: Number(x.weight_kg) }));
   const fmt = (d: string) => new Date(d).toLocaleString("en-GB", { weekday: "short", day: "numeric", month: "short", hour: "numeric", minute: "2-digit", timeZone: tz });
+  // Cardio and steps logged in the 7 days up to this check-in.
+  const ciDate = cur ? new Intl.DateTimeFormat("en-CA", { timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(cur.created_at)) : null;
+  const [{ data: cPlan }, { data: cLogs }, { data: cSteps }] = ciDate
+    ? await Promise.all([
+        supabase.from("cardio_plans").select("weekly_minutes, daily_steps, extra_counts").eq("client_id", id).maybeSingle(),
+        supabase.from("cardio_logs").select("minutes, session_id").eq("client_id", id).gte("log_date", addDays(ciDate, -6)).lte("log_date", ciDate),
+        supabase.from("step_logs").select("steps").eq("client_id", id).gte("log_date", addDays(ciDate, -6)).lte("log_date", ciDate),
+      ])
+    : [{ data: null }, { data: null }, { data: null }];
+  const cardioMins = countedMinutes(cLogs ?? [], cPlan?.extra_counts ?? true);
+  const stepAvg = cSteps?.length ? Math.round(cSteps.reduce((a, x) => a + x.steps, 0) / cSteps.length) : null;
   const curMod = (cur?.module as ModuleKey | undefined) ?? module;
   const flags = cur ? flagsFor((cur.answers ?? {}) as Answers, (cur.module_answers ?? {}) as Answers, (cur.cycle as { period?: string | null } | null) ?? null) : [];
   const customAnswers = ((cur as { custom_answers?: { q: string; a: string }[] } | undefined)?.custom_answers ?? []).filter((x) => x.a);
@@ -160,6 +173,18 @@ export default async function ClientCheckins({ params, searchParams }: { params:
             <div className="card">
               <h2>{MODULES[curMod].label}</h2>
               <AnswerRows qs={MODULES[curMod].questions} now={cur.module_answers as Answers} before={prev?.module === cur.module ? ((prev?.module_answers as Answers) ?? null) : null} />
+            </div>
+          ) : null}
+
+          {cLogs?.length || cPlan?.weekly_minutes || stepAvg != null ? (
+            <div className="card">
+              <h2>Cardio that week</h2>
+              <p style={{ margin: 0 }}>
+                <b>{cardioMins}</b>
+                {cPlan?.weekly_minutes ? ` of ${cPlan.weekly_minutes}` : ""} min logged in the 7 days to this check-in
+                {stepAvg != null ? `, ${stepAvg.toLocaleString("en-GB")} steps a day on average${cPlan?.daily_steps ? ` (target ${cPlan.daily_steps.toLocaleString("en-GB")})` : ""}` : ""}.{" "}
+                <Link href={`/coach/clients/${c.id}/cardio`}>Cardio ›</Link>
+              </p>
             </div>
           ) : null}
 

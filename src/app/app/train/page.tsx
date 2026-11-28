@@ -3,6 +3,9 @@ import Link from "next/link";
 import { requireClientView } from "@/lib/auth";
 import { needsGpCheck } from "@/lib/trial-server";
 import { confirmGp } from "@/app/actions/intake";
+import { todayIn } from "@/lib/nutrition";
+import { weekOf, type CardioLog, type CardioPlan, type CardioSession } from "@/lib/cardio";
+import { CardioCard } from "./CardioCard";
 
 export default async function TrainPage({ searchParams }: { searchParams: Promise<{ done?: string; gp?: string }> }) {
   const { supabase, user, profile } = await requireClientView();
@@ -34,6 +37,14 @@ export default async function TrainPage({ searchParams }: { searchParams: Promis
     ? await supabase.from("workouts").select("id, name, workout_exercises(count)").eq("programme_id", prog.id).order("position")
     : { data: null };
   const { data: logs } = await supabase.from("workout_logs").select("workout_id, started_at").eq("client_id", user.id).order("started_at", { ascending: false }).limit(50);
+  const today = todayIn(profile.time_zone);
+  const week = weekOf(today);
+  const [{ data: cPlan }, { data: cSessions }, { data: cLogs }, { data: steps }] = await Promise.all([
+    supabase.from("cardio_plans").select("*").eq("client_id", user.id).maybeSingle<CardioPlan>(),
+    supabase.from("cardio_sessions").select("*").eq("client_id", user.id).order("position"),
+    supabase.from("cardio_logs").select("*").eq("client_id", user.id).gte("log_date", week.start).lte("log_date", week.end).order("log_date"),
+    supabase.from("step_logs").select("steps").eq("client_id", user.id).eq("log_date", today).maybeSingle(),
+  ]);
   const last = new Map<string, string>();
   (logs ?? []).forEach((l) => l.workout_id && !last.has(l.workout_id) && last.set(l.workout_id, l.started_at));
 
@@ -73,6 +84,7 @@ export default async function TrainPage({ searchParams }: { searchParams: Promis
           })}
         </div>
       )}
+      <CardioCard today={today} plan={cPlan ?? null} sessions={(cSessions ?? []) as CardioSession[]} logs={(cLogs ?? []) as CardioLog[]} stepsToday={steps?.steps ?? null} />
     </>
   );
 }
