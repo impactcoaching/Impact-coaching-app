@@ -24,6 +24,18 @@ export default async function TrialsPage() {
     .eq("status", "trial")
     .order("trial_started_at", { ascending: false });
   const rows = (data ?? []) as unknown as Row[];
+  // What auto-assign gave each trial (needs 0020_trial_auto_assign.sql; without it this is just empty).
+  const ids = rows.map((r) => r.id);
+  const [{ data: autoProg }, { data: autoPlan }] = ids.length
+    ? await Promise.all([
+        supabase.from("programmes").select("client_id, template_name").in("client_id", ids).not("template_name", "is", null),
+        supabase.from("nutrition_plans").select("client_id, template_name").in("client_id", ids).not("template_name", "is", null),
+      ])
+    : [{ data: [] }, { data: [] }];
+  const auto = new Map<string, string[]>();
+  for (const a of [...(autoProg ?? []), ...(autoPlan ?? [])] as { client_id: string; template_name: string }[]) {
+    auto.set(a.client_id, [...(auto.get(a.client_id) ?? []), a.template_name]);
+  }
   const running = rows.filter((r) => !trialOver(r));
   const ended = rows.filter((r) => trialOver(r));
   const now = Date.now();
@@ -39,7 +51,7 @@ export default async function TrialsPage() {
       </h1>
 
       <p className="muted small" style={{ margin: 0 }}>
-        New trials start straight away. Write each person&apos;s workouts on their Training page and make them live, the same as any client. Until then they see that you&apos;re writing them.
+        New trials start straight away. Competitors are given the programme for their class, focus and days a week, and everyone gets a nutrition plan sized from their sign-up answers, both live straight away. Non-competitors get your starter workouts for now. Anyone with a health flag, a medical note about food, or no height and weight is left for you: they get your starter workouts and no nutrition plan. Change anything on their Training and Nutrition pages, the same as any client.
         {!bookingUrl() ? " No call booking link is set yet, so \"Book a call\" opens Messages. Add your Calendly link in Vercel as NEXT_PUBLIC_BOOKING_URL to change that." : ""}
       </p>
 
@@ -70,6 +82,7 @@ export default async function TrialsPage() {
                 <div className="daybar" aria-hidden="true">
                   <i style={{ width: `${Math.round((day / TRIAL_DAYS) * 100)}%` }} />
                 </div>
+                {auto.get(r.id)?.length ? <p className="muted small" style={{ margin: 0 }}>Given automatically: {auto.get(r.id)!.join(" · ")}</p> : null}
                 <div className="row" style={{ justifyContent: "space-between" }}>
                   <span className={`chip${status === "Check-in to reply to" || status === "Needs workouts" ? " pink" : ""}`}>{status}</span>
                   <div className="row">

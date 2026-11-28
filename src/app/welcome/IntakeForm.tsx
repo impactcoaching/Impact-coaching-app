@@ -4,6 +4,7 @@ import { useActionState, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { saveIntake } from "@/app/actions/intake";
 import {
+  CLASS_FOCUS,
   COUNTRIES,
   DIVISIONS,
   EQUIPMENT,
@@ -13,6 +14,7 @@ import {
   GYM_PRESETS,
   NUTRITION_STYLES,
   SCREENING,
+  programmeClass,
   type EquipmentKey,
 } from "@/lib/options";
 
@@ -28,6 +30,7 @@ export function IntakeForm({ firstName, trial = false }: { firstName: string; tr
   const [screen, setScreen] = useState<Record<string, string>>({});
   const [tz, setTz] = useState("");
   const [sex, setSex] = useState("");
+  const [division, setDivision] = useState("");
   const formRef = useRef<HTMLFormElement>(null);
   const top = useRef<HTMLDivElement>(null);
 
@@ -170,13 +173,26 @@ export function IntakeForm({ firstName, trial = false }: { firstName: string; tr
               </label>
               <label className="field">
                 Class
-                <select className="ctl" name="division" defaultValue="">
+                <select className="ctl" name="division" value={division} onChange={(e) => setDivision(e.target.value)}>
                   <option value="">Not decided yet</option>
                   {DIVISIONS.map((f) => (
                     <option key={f}>{f}</option>
                   ))}
                 </select>
               </label>
+              {(() => {
+                const focuses = CLASS_FOCUS[programmeClass(division, sex) ?? ""];
+                return focuses ? (
+                  <label className="field" style={{ gridColumn: "1 / -1" }}>
+                    The area you most want to bring up
+                    <select className="ctl" name="focus" defaultValue={focuses[0]} key={division + sex}>
+                      {focuses.map((f) => (
+                        <option key={f}>{f}</option>
+                      ))}
+                    </select>
+                  </label>
+                ) : null;
+              })()}
             </div>
           ) : null}
           {goal === "competition" && competes === "no" ? <p className="alert small">You picked competing as your goal, so we&apos;ve assumed you compete.</p> : null}

@@ -65,6 +65,26 @@ export const DIVISIONS = [
   "Other",
 ] as const;
 
+/** The class programme set for a sign-up class. Fitness trains like figure; bodybuilding splits by sex. */
+export function programmeClass(division: string | null | undefined, sex: string | null | undefined): string | null {
+  if (!division) return null;
+  if (division === "Bodybuilding") return sex === "female" ? "Women's bodybuilding" : sex === "male" ? "Men's bodybuilding" : null;
+  if (division === "Fitness") return "Figure";
+  return CLASS_FOCUS[division] ? division : null;
+}
+
+/** The 5 focus areas for each class programme set (template names are "Class: Focus, N days"). */
+export const CLASS_FOCUS: Record<string, string[]> = {
+  Bikini: ["Glutes", "Glute-ham tie-in", "Shoulder caps", "Back width", "Abs and waist"],
+  Wellness: ["Glutes", "Quads", "Hamstrings and tie-in", "Shoulders", "Abs and waist"],
+  Figure: ["Shoulders", "Back width", "Glutes and hamstrings", "Quads", "Abs and waist"],
+  "Women's physique": ["Back", "Shoulders", "Arms", "Legs", "Abs and waist"],
+  "Women's bodybuilding": ["Back", "Shoulders", "Quads", "Glutes and hamstrings", "Abs and waist"],
+  "Men's physique": ["Upper chest", "Shoulder width", "Back width", "Arms", "Abs and upper back detail"],
+  "Classic physique": ["Chest", "Back width", "Quad sweep", "Arms", "Abs and waist"],
+  "Men's bodybuilding": ["Back", "Chest", "Legs", "Arms", "Abs and waist"],
+};
+
 export const EXPERIENCE = [
   { value: "new", label: "New to training" },
   { value: "some", label: "Under 2 years" },
