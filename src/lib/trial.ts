@@ -75,7 +75,7 @@ export const longDate = (d: Date) => d.toLocaleDateString("en-GB", { day: "numer
 
 /** Adam's short notes on the trial home screen, by day. The latest one due is shown. */
 export const TRIAL_NOTES: { from: number; text: string }[] = [
-  { from: 1, text: "Welcome in. I'm writing your workouts around your answers, so they'll show in Train soon. Log your food as you go in the meantime, and don't worry about getting it perfect." },
+  { from: 1, text: "Welcome in. Your workouts are built around your answers and will be in Train. Log your food as you go in the meantime, and don't worry about getting it perfect." },
   { from: 3, text: "How did the first sessions feel? Don't worry about the weights yet, just get the moves feeling smooth." },
   { from: 7, text: "It's check-in day. Fill it in honestly and I'll reply with a short video." },
   { from: 10, text: "Want a plan built just for you? Book a quick call and we'll see if coaching is a good fit." },

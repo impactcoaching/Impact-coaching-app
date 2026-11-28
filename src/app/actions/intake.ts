@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requireProfile } from "@/lib/auth";
-import { ALL_EQUIPMENT, POLICY_VERSION, SCREENING } from "@/lib/options";
+import { ALL_EQUIPMENT, CLASS_FOCUS, POLICY_VERSION, SCREENING, programmeClass } from "@/lib/options";
 
 export type IntakeState = { error?: string } | undefined;
 
@@ -37,6 +37,7 @@ const schema = z.object({
   competes: z.enum(["yes", "no"]).default("no"),
   federation: optText(60),
   division: optText(60),
+  focus: optText(60),
   height_cm: optNum(100, 250),
   start_weight_kg: optNum(30, 300),
   days_per_week: optNum(1, 7),
@@ -75,7 +76,7 @@ export async function saveIntake(_: IntakeState, form: FormData): Promise<Intake
   }
   const screeningFlag = Object.values(screening).some(Boolean);
 
-  const { error: intakeError } = await supabase.from("client_intake").upsert({
+  const intake = {
     client_id: user.id,
     date_of_birth: d.date_of_birth,
     phone: d.phone ?? null,
@@ -86,6 +87,7 @@ export async function saveIntake(_: IntakeState, form: FormData): Promise<Intake
     competes: d.competes === "yes",
     federation: d.competes === "yes" ? (d.federation ?? null) : null,
     division: d.competes === "yes" ? (d.division ?? null) : null,
+    focus: d.competes === "yes" && (CLASS_FOCUS[programmeClass(d.division, d.sex) ?? ""] ?? []).includes(d.focus ?? "") ? d.focus : null,
     height_cm: d.height_cm ?? null,
     start_weight_kg: d.start_weight_kg ?? null,
     days_per_week: d.days_per_week ?? null,
@@ -98,7 +100,14 @@ export async function saveIntake(_: IntakeState, form: FormData): Promise<Intake
     screening,
     screening_flag: screeningFlag,
     screening_details: d.screening_details ?? null,
-  });
+  };
+  let { error: intakeError } = await supabase.from("client_intake").upsert(intake);
+  // Before 0020_trial_auto_assign.sql there's no focus column: save the rest without it.
+  if (intakeError?.code === "42703" || intakeError?.code === "PGRST204") {
+    const { focus: _f, ...rest } = intake;
+    void _f;
+    ({ error: intakeError } = await supabase.from("client_intake").upsert(rest));
+  }
   if (intakeError) return { error: "Something went wrong saving your answers. Please try again." };
 
   // Replace the main gym with what was ticked here.
@@ -122,7 +131,8 @@ export async function saveIntake(_: IntakeState, form: FormData): Promise<Intake
   if (d.start === "trial") {
     const { error: placeError } = await supabase.from("profiles").update({ country: d.country, time_zone: d.time_zone ?? null }).eq("id", user.id);
     if (placeError) return { error: "Something went wrong. Please try again." };
-    // Starts the 14 days. Adam then writes their workouts. When all trial places are taken, they join the review list instead.
+    // Starts the 14 days. Competitors get their class programme and everyone gets a nutrition plan, unless their health
+    // answers mean Adam should set things himself. When all trial places are taken, they join the review list instead.
     const { data: started, error: trialError } = await supabase.rpc("start_trial");
     if (trialError) {
       console.error("start_trial", trialError);
