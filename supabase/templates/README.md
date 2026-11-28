@@ -71,3 +71,10 @@ insert into public.templates (kind, name, summary, goal, level, audience, compet
 
 `style` is `macros` (targets only), `plan` (set meals) or `portions` (hand portions: `palms`, `fists`, `cupped`, `thumbs` per day).
 Foods are matched to the shared food library by name; unbranded foods win a name clash.
+
+## Class programmes (0018)
+
+The 160 bodybuilding class programmes (8 classes x 5 focus areas x 3 to 6 days a week) are generated, not hand-written.
+Edit the sessions in `src/men.py`, `src/women.py`, `src/mens_physique.py` or a class file, then run
+`cd src && python3 build_programmes.py 0018 && python3 review_doc.py`. That rewrites `0018_class_programmes.sql`
+(everything in one file) and `0018_class_programmes/` (the same, one file per class, easier to paste into the SQL Editor).
