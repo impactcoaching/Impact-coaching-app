@@ -78,3 +78,9 @@ The 160 bodybuilding class programmes (8 classes x 5 focus areas x 3 to 6 days a
 Edit the sessions in `src/men.py`, `src/women.py`, `src/mens_physique.py` or a class file, then run
 `cd src && python3 build_programmes.py 0018 && python3 review_doc.py`. That rewrites `0018_class_programmes.sql`
 (everything in one file) and `0018_class_programmes/` (the same, one file per class, easier to paste into the SQL Editor).
+
+## Nutrition plans (0019)
+
+56 plans: balanced, high protein, vegetarian and vegan, from 1,400 to 4,000 kcal in 200 kcal steps. Each has a training
+day (with a post-workout meal) and a rest day, plus hand portions and swaps. Edit `src/nutrition.py`, then run
+`cd src && python3 nutrition.py 0019`. Strom and Per4m products are added as foods in part 1, with where each value came from.
