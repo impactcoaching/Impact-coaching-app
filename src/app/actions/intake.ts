@@ -131,7 +131,7 @@ export async function saveIntake(_: IntakeState, form: FormData): Promise<Intake
   if (d.start === "trial") {
     const { error: placeError } = await supabase.from("profiles").update({ country: d.country, time_zone: d.time_zone ?? null }).eq("id", user.id);
     if (placeError) return { error: "Something went wrong. Please try again." };
-    // Starts the 14 days. Competitors get their class programme and everyone gets a nutrition plan, unless their health
+    // Starts the 14 days. Everyone gets a programme (class, or goal for non-competitors) and a nutrition plan, unless their health
     // answers mean Adam should set things himself. When all trial places are taken, they join the review list instead.
     const { data: started, error: trialError } = await supabase.rpc("start_trial");
     if (trialError) {
